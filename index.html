@@ -1,8 +1,194 @@
 <!DOCTYPE html>
 <html>
-  <body>
-    <h1>Hello World</h1>
-    <p>I'm hosted with GitHub Pages.</p>
-    <img src="b2.png">
-  </body>
+<head>
+		<title>Design Blocks</title>
+		<style type="text/css">
+			.cell
+			{
+				position:absolute;
+			}
+			body
+			{
+				background-color:rgb(230,230,230);
+			}
+			
+		</style>
+
+
+			
+</head>
+<body onload="setup()" >
+<script language="JavaScript" type="text/javascript">
+<!--
+var SIDE=8;
+var running;
+grid=new Array;
+gridstatus=new Array;
+function refresh()
+{
+	for(i=0;i<SIDE;i++)
+		for(j=0;j<SIDE;j++)
+		{
+			document.images[grid[i][j].id].src=gridimage[gridstatus[i][j]];
+		}
+}
+function reset()
+{
+	var capture=[[8,7,0,0,0,13,14,6],[5,6,0,0,1,9,10,2],[0,0,0,0,13,14,9,9],[0,1,2,1,9,10,9,9],[0,4,3,13,9,9,14,9],[0,0,0,17,9,9,10,9],[0,0,0,13,9,9,9,9],[0,0,0,17,9,9,9,9]];
+	for(i=0;i<SIDE;i++)
+		for(j=0;j<SIDE;j++)
+		{
+			gridstatus[i][j]=capture[i][j];
+		}
+	refresh();
+}
+function clr()
+{
+	for(i=0;i<SIDE;i++)
+		for(j=0;j<SIDE;j++)
+		{
+			gridstatus[i][j]=9;
+		}
+	refresh();
+}
+
+for(i=0;i<SIDE;i++)
+{
+	grid[i]=new Array;
+	gridstatus[i]=new Array;
+}
+gridimage=new Array("b.png","b1.png","b2.png","b3.png","b4.png","b1f.png","b2f.png","b3f.png","b4f.png","w.png","wb1.png","wb2.png","wb3.png","wb4.png","wb1f.png","wb2f.png","wb3f.png","wb4f.png");
+
+for(i=0;i<SIDE;i++)
+	for(j=0;j<SIDE;j++)
+	{
+		x=200+32*i;
+		y=150+32*j;
+		cellid="c"+x+"$"+y;
+		document.write("<div class='cell'  id='"+cellid+"'><img name='"+cellid+"' src='b.png'></div>");
+		thiscell=document.getElementById(cellid);
+		thiscell.style.left=x;
+		thiscell.style.top=y;
+		grid[i][j]=thiscell;
+		gridstatus[i][j]=0;
+	}
+	
+
+
+//constructors and methods
+function setup()
+{
+	document.onmousedown=mouseDown;
+	pgob=document.getElementById("gob");
+	running=false;
+	reset();
+}
+function mouseDown(e)
+{
+	if (!e) var e=window.event;
+	x=e.clientX;
+	y=e.clientY;
+	var gx=Math.floor((x-200)/32)
+	var gy=Math.floor((y-150)/32)
+	//alert(gx+":"+gy)
+	if ((gx<0)||(gy<0)||(gx>(SIDE-1))||(gy>(SIDE-1))) 
+		return true;
+	rotate(gx,gy);
+	return false;
+}
+
+function rotate(x,y)
+{
+	gridstatus[x][y]=nrotate(gridstatus[x][y]);
+	document.images[grid[x][y].id].src=gridimage[gridstatus[x][y]];
+}
+function nrotate(n)
+{
+	return (n+1)%18;
+}
+function randomCell()
+{
+	return ({"x": Math.floor(Math.random()*SIDE),"y":Math.floor(Math.random()*SIDE)});
+}
+function randomImage()
+{
+	return Math.floor(Math.random()*18);
+}
+function tweakCell()
+{
+	var cell=randomCell();
+	gridstatus[cell.x][cell.y]=randomImage();
+	refresh();
+}
+function tweakCellKaleidoscope()
+{
+	var cell=randomCell();
+	var newImage=randomImage();
+	
+	gridstatus[cell.x][cell.y]=newImage;
+	gridstatus[SIDE-cell.x-1][cell.y]=flipH(newImage);
+	gridstatus[cell.x][SIDE-cell.y-1]=flipV(newImage);
+	gridstatus[SIDE-cell.x-1][SIDE-cell.y-1]=flipH(flipV(newImage));
+	if (cell.x!=cell.y)
+	{
+		var diag=flipD(newImage);
+		gridstatus[cell.y][cell.x]=diag;
+		gridstatus[SIDE-cell.y-1][cell.x]=flipH(diag);
+		gridstatus[cell.y][SIDE-cell.x-1]=flipV(diag);
+		gridstatus[SIDE-cell.y-1][SIDE-cell.x-1]=flipV(flipH(diag));
+	}		
+		
+	refresh();
+}
+function flipH(n)
+{
+	var flipHTable=[0,5,6,7,8,1,2,3,4,9,14,15,16,17,10,11,12,13];
+	return flipHTable[n];
+}
+function flipV(n)
+{
+	var flipVTable=[0,7,8,5,6,3,4,1,2,9,16,17,14,15,12,13,10,11];
+	return flipVTable[n];
+}
+function flipD(n) //diagonal
+{
+	var flipDTable=[0,8,5,6,7,2,3,4,1,9,17,14,15,16,11,12,13,10];
+	return flipDTable[n];
+}
+
+function step()
+{
+	if (running)
+	{
+		tweakCellKaleidoscope();
+		setTimeout("step()",1000);
+	}
+}
+
+
+function go()
+{
+	pgob=document.getElementById("gob");
+	
+	if(!running)
+	{
+		pgob.value="stop";
+		running=true;
+		step();
+		
+	}
+	else 
+	{
+		pgob.value="go";
+		running=false;
+	}
+}
+
+//-->
+</script>
+<input id="gob" type="button" value="go" onclick="go()">
+<input type="button" value="reset" onclick="reset()">
+<input type="button" value="clear" onclick="clr()">
+<input type="button" value="tweak" onclick="tweakCellKaleidoscope()">
+</body>
 </html>
