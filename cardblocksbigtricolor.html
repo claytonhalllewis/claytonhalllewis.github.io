@@ -14,7 +14,7 @@
 			{
 				float: right;
 				position: relative;
-				top: 50px;
+				top: 250px;
 				width: 50%;
 				font-family:Arial, Helvetica, sans-serif
 			}
@@ -29,7 +29,7 @@
 <!--
 //this version uses a palette rather than cyclic clicking
 //should accommodate three colors
-var SIDE=8;
+var SIDE=16;
 var K32=33;
 var XPAD=K32;
 var YPAD=50;
@@ -84,7 +84,8 @@ for(i=0;i<SIDE;i++)
 //draw palette
 		
 		drawPalette(0);
-		reset();
+		drawPalette(1);
+		drawPalette(2);
 
 function drawPalette(n)
 {
@@ -137,11 +138,13 @@ function mouseDown(e)
 		processWorkspace(gx,gy);
 		return false;
 	}
-	
-	if(inPalette(0,gx,gy))
+	for(i=0;i<3;i++)
 	{
-			processPalette(0,gx,gy);
+		if(inPalette(i,gx,gy))
+		{
+			processPalette(i,gx,gy);
 			return false;
+		}
 	}
 	return true;
 }
@@ -205,7 +208,7 @@ function randomCell()
 }
 function randomImage()
 {
-	return Math.floor(Math.random()*18);
+	return Math.floor(Math.random()*18*3);
 }
 
 function tweakCellKaleidoscope()
@@ -266,23 +269,6 @@ function step()
 		setTimeout("step()",1000);
 	}
 }
-function reset()
-{
-	var capture=[[8,7,0,0,0,13,14,6],[5,6,0,0,1,9,10,2],[0,0,0,0,13,14,9,9],[0,1,2,1,9,10,9,9],[0,4,3,13,9,9,14,9],[0,0,0,17,9,9,10,9],[0,0,0,13,9,9,9,9],[0,0,0,17,9,9,9,9]];
-	for(i=0;i<SIDE;i++)
-		for(j=0;j<SIDE;j++)
-		{
-			drawDirect(i,j,gridimage[capture[i][j]]);
-		}
-}
-function clr()
-{
-	for(i=0;i<SIDE;i++)
-			for(j=0;j<SIDE;j++)
-				drawDirect(i,j,gridimage[9]);
-			
-
-}
 function toggleGridLines()
 {
 	var cellid;
@@ -325,7 +311,6 @@ function go()
 	{
 		pgob.value="stop";
 		running=true;
-		clr();
 		step();
 		
 	}
@@ -342,16 +327,11 @@ function go()
 
 <div class="text">
 <input id="gob" type="button" value="kaleidoscope" onclick="go()">
-<input  type="button" value="clear" onclick="clr()">
 <input  type="button" value="toggle grid" onclick="toggleGridLines()">
-<h2>Virtual Design Blocks</h2>
-Here is a computerized version of a set of design blocks I made in wood some years ago. In the wooden set each block is a cube, its six faces divided variously between two colors, as shown in this unfolded pattern:<p> <img src="folding.png"> <p>In this version you have 64 of the blocks, the work area, at left. To the right is a palette showing the six faces in all possible rotations. One face is always selected, shown between the palette and the work area.  Clicking on blocks in the work area changes them to show the selected face, and clicking in the palette changes the selected face. A wide range of patterns is possible; <a href="examples.html">here are some examples</a>). 
-<p>There's a CLEAR button to start you with a field of all white. The KALEIDOSCOPE button will show you automatically evolving patterns. Refreshing your browser window will return you to the original holiday scene. 
-	<p>There are gridlines to make it easier to see see the individual blocks and faces. When you have a pattern you like you can remove the lines by pressing the TOGGLE GRID button. If you get ambitious you can play with <a href="cardblocksbigtricolor.html">a bigger, three color version</a>.
-<p>The wooden blocks were easier to work with, but I could never figure out how to get the blocks made in quantity to send to all of you.
+<h2>Tricolor Version</h2>
 
-<p>Happy 2014, Clayton
-		
+	<p>To clear the work area, refresh your browser window.
+		<p><a href="tricolorexample.html">Here is an example of a design using three colors.</a>
 
 </div>
 
