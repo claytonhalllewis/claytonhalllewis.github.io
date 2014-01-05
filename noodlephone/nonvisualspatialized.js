@@ -1,14 +1,4 @@
-//functions for responding to keypresses in nonspatialized UI
-//op is back and forward in palette
-//vb is back and forward in blocks
-//xc is back and forward in connectors
-//e moves onto edge or from edge onto connector 
-//w moves back
-//start with palette
 
-//buttons
-//RL UD
-//select, delete, run, undo
 
 var headings;
 var headingsCursor=0;
@@ -17,10 +7,21 @@ var paletteCursor=0;
 var activeWorkspace=null;
 var navColumn="headings";
 var lastOp="nav";
+var workspaceName;
+
+var noodlePromptFlag="nothing";
+//noodlePrompt sets noodlePromptFlag, tells user to type colon, then gives prompt
+//then typing colon triggers assignment to vbl based on flag
 
 var handleKey=function(keyAsString)
 {
-    if (keyAsString=="/") //slash for select
+    if (keyAsString==":")
+    {
+	if (noodlePromptFlag!="nothing")
+		noodlePromptPhase2();
+	else utter("boop");
+    }
+    else if (keyAsString=="/") //slash for select
     {
         buttonS(); //select
     }
@@ -352,13 +353,17 @@ var utter=function(s)
     if(speakWorker)
        speakfn(s); //put in for firefox
 }
-var noodlePrompt=function(label)
+var label={"newWorkspaceName":"new workspace name"};
+var noodlePrompt=function(flag)
 {
-	utter(label);
-	var name;
-	setTimeout(function(){name=prompt(label);},2000);
-	return name;
-	//return(prompt(label));
+	noodlePromptFlag=flag;
+	utter("type colon, then "+label[flag]);
+}
+var noodlePromptPhase2=function()
+{
+	if (noodlePromptFlag=="newWorkspaceName")
+		workspaceName=prompt(label[flag]);
+	else utter("invalid noodle prompt flag");
 }
 var describeBlock=function(prefix,block)
 {

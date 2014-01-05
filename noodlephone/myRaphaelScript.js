@@ -116,7 +116,7 @@ window.onload = function() {
             //mObj=JSON.parse(JSON.stringify(jsonObject))
             //console.log("setting activeWorkspace");
             activeWorkspace=makeWorkspace(JSON.parse(JSON.stringify(NewIntermediateRep)),"workspace_container_container",WorkspaceWidth,WorkspaceHeight,workX);
-            activeWorkspace.name=noodlePrompt("name of new function?");
+            activeWorkspace.name=noodlePrompt("newWorkspaceName");
             activeWorkspace.draw();
             activeWorkspace.selectedBlock.blockSelector=0;
             //NewIntermediateRep.blocks[0].shape[0].attr({"stroke":"#ff0000"});
