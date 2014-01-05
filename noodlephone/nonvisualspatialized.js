@@ -355,7 +355,10 @@ var utter=function(s)
 var noodlePrompt=function(label)
 {
 	utter(label);
-	return(prompt(label));
+	var name;
+	setTimeOut(function(){name=prompt(label);},2000);
+	return name;
+	//return(prompt(label));
 }
 var describeBlock=function(prefix,block)
 {
