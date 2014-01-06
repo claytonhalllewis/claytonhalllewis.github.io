@@ -410,7 +410,7 @@ var processS=function(ws)
 var selectConnector=function(ws)
 {
     var thisConnector=ws.connectors[ws.connectorCursor];
-    //console.log("selecting connector");
+    utter("selecting connector");
     var type;
     if(thisConnector.type=="out")
     {
