@@ -310,6 +310,10 @@ var inputPrompt=function(arg)
     return eval(prompt("input?"));
 }
 */
+//var inputPrompt=function(arg)
+//{
+//   return eval(noodlePrompt("input?"));
+//}
 var inputPrompt=function(arg)
 {
     return eval(noodlePrompt("input?"));

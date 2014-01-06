@@ -87,10 +87,16 @@ var utter=function(s)
     if(speakWorker)
        speakfn(s); //put in for firefox
 }
+function sleep(seconds) 
+{
+  var e = new Date().getTime() + (seconds * 1000);
+  while (new Date().getTime() <= e) {}
+}
 var noodlePrompt=function(label)
 {
-	utter(label);
-	return(prompt(label));
+	utter("type "+label);
+	sleep(1);
+	return prompt(label);
 }
 var describeHeading=function()
 {

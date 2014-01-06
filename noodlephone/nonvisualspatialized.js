@@ -7,21 +7,13 @@ var paletteCursor=0;
 var activeWorkspace=null;
 var navColumn="headings";
 var lastOp="nav";
-var workspaceName;
 
-var noodlePromptFlag="nothing";
-//noodlePrompt sets noodlePromptFlag, tells user to type colon, then gives prompt
-//then typing colon triggers assignment to vbl based on flag
+
+
 
 var handleKey=function(keyAsString)
 {
-    if (keyAsString==":")
-    {
-	if (noodlePromptFlag!="nothing")
-		noodlePromptPhase2();
-	else utter("boop");
-    }
-    else if (keyAsString=="/") //slash for select
+    if (keyAsString=="/") //slash for select
     {
         buttonS(); //select
     }
@@ -341,7 +333,7 @@ activeWorkspace.blockCursor=activeWorkspace.intermediateRep.blocks[activeWorkspa
 var buttonNew=function()
 {
 	palette.newButtonAction("dummy");
-	utter(activeWorkspace.name);
+	
 }
    
 
@@ -353,17 +345,16 @@ var utter=function(s)
     if(speakWorker)
        speakfn(s); //put in for firefox
 }
-var label={"newWorkspaceName":"new workspace name"};
-var noodlePrompt=function(flag)
+function sleep(seconds) 
 {
-	noodlePromptFlag=flag;
-	utter("type colon, then "+label[flag]);
+  var e = new Date().getTime() + (seconds * 1000);
+  while (new Date().getTime() <= e) {}
 }
-var noodlePromptPhase2=function()
+var noodlePrompt=function(label)
 {
-	if (noodlePromptFlag=="newWorkspaceName")
-		workspaceName=prompt(label[flag]);
-	else utter("invalid noodle prompt flag");
+	utter("type "+label);
+	sleep(1);
+	return prompt(label);
 }
 var describeBlock=function(prefix,block)
 {

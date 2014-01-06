@@ -115,11 +115,11 @@ window.onload = function() {
         {
             //mObj=JSON.parse(JSON.stringify(jsonObject))
             //console.log("setting activeWorkspace");
-            activeWorkspace=makeWorkspace(JSON.parse(JSON.stringify(NewIntermediateRep)),"workspace_container_container",WorkspaceWidth,WorkspaceHeight,workX);
-            activeWorkspace.name=noodlePrompt("newWorkspaceName");
+	                activeWorkspace=makeWorkspace(JSON.parse(JSON.stringify(NewIntermediateRep)),"workspace_container_container",WorkspaceWidth,WorkspaceHeight,workX);
+	    activeWorkspace.name=noodlePrompt("new workspace name");
+	utter("new workspace is "+activeWorkspace.name);
             activeWorkspace.draw();
             activeWorkspace.selectedBlock.blockSelector=0;
-            //NewIntermediateRep.blocks[0].shape[0].attr({"stroke":"#ff0000"});
         }
 /* button replaced by key n
         var newButton=document.createElement('input');
@@ -1087,7 +1087,7 @@ var drawFromIntermediateRep=function(workspace)
             var keyAsString=String.fromCharCode(evt.keyCode).toLowerCase();
 
             //console.log("keydown");
-            //console.log(evt.keyCode);
+            console.log(evt.keyCode);
             //console.log("<"+keyAsString+">");
 	    if(evt.keyCode==191) //slash for select
 		keyAsString="/";
