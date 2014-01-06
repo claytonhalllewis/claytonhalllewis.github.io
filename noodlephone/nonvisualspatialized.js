@@ -31,6 +31,10 @@ var handleKey=function(keyAsString)
     }
     else if (keyAsString=="n")
     {
+       utter("type w and then new workspace name");
+    }
+    else if (keyAsString=="w")
+    {
        buttonNew();
     }
 
@@ -345,15 +349,10 @@ var utter=function(s)
     if(speakWorker)
        speakfn(s); //put in for firefox
 }
-function sleep(seconds) 
-{
-  var e = new Date().getTime() + (seconds * 1000);
-  while (new Date().getTime() <= e) {}
-}
+
 var noodlePrompt=function(label)
 {
 	utter("type "+label);
-	sleep(1);
 	return prompt(label);
 }
 var describeBlock=function(prefix,block)
