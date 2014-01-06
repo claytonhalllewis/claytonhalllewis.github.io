@@ -410,7 +410,7 @@ var processS=function(ws)
 var selectConnector=function(ws)
 {
     var thisConnector=ws.connectors[ws.connectorCursor];
-    utter("selecting connector");
+    
     var type;
     if(thisConnector.type=="out")
     {
@@ -429,6 +429,7 @@ var selectConnector=function(ws)
     {
         utter("adding edge from connector "+ws.selectedConnectors.from.name+" on block "+ws.intermediateRep.blocks[ws.selectedConnectors.from.blockSelector].functionName+" to connector "+ws.selectedConnectors.to.name+" on block "+ws.intermediateRep.blocks[ws.selectedConnectors.to.blockSelector].functionName);
     }
+    else utter("connector selected");
 
     ws.addEdgeFromSelections(); //will add if there is a matching connector
     ws.selectionType="none";
