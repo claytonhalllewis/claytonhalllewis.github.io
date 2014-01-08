@@ -1,0 +1,91 @@
+<html>
+<head>
+<title>Noodle</title>
+<style type="text/css">  
+      	#canvas_container 
+	{  
+      	width: 500px;  
+      	border: 1px solid #aaa;  
+        }  
+	#workspace_container_container,#palette_container
+	{
+	display:none;
+	float:left;
+	}
+	#textbox
+	{
+	font-size:36;
+	}
+	.button 
+	{
+    		background-color: #0FFF0F;
+    		color: #000000;
+    		float: left;
+    		padding: 10px;
+    		border-radius: 10px;
+    		-moz-border-radius: 10px;
+    		-webkit-border-radius: 10px;
+	}
+
+	.small-btn 
+	{
+    		width: 50px;
+    		height: 20px;
+	}
+	.big-btn 
+	{
+	    	width: 100px;
+    		height: 40px;
+	}
+	.hidden
+	{
+		visibility:hidden;
+	}
+	.text_line
+	{
+		clear:both;
+		margin-bottom:2px;
+	}
+
+
+</style>
+
+</head>
+
+<body>
+
+
+<canvas id="theCanvasID" width="150" height="150">  </canvas>
+<div id="palette_container"></div>
+<div id="workspace_container_container"></div>
+</div>
+<h3 class="text_line"></h3>
+<button class="button small-btn" onclick="buttonNew()">new</button>
+<h3 class="text_line"></h3>
+<button class="button big-btn hidden" >dummy</button>
+<button class="button big-btn" onclick="buttonU()">U</button>
+<button class="button big-btn hidden" >dummy</button>
+<h3 class="text_line"></h3>
+<button class="button big-btn" onclick="buttonL()">L</button>
+<button class="button big-btn" onclick="buttonS()">S</button>
+<button class="button big-btn" onclick="buttonR()">R</button>
+<h3 class="text_line"></h3>
+<button class="button big-btn hidden" >dummy</button>
+<button class="button big-btn" onclick="buttonD()">D</button>
+<button class="button big-btn hidden" >dummy</button>
+<h3 class="text_line"></h3>
+<button class="button small-btn" onclick="buttonRun()">run</button>
+<button class="button small-btn" onclick="buttonDelete()">delete</button>
+<h3 class="text_line"></h3>
+<textarea id="textbox" type="text" value="output goes here"></textarea>
+
+<script src="nonvisualbuttons.js"></script>
+<script src="noodlesound.js"></script>
+<script src="noodleshapes.js"></script>
+<script src="noodlebase.js"></script>
+<script type="text/javascript" src="raphael-min.js"></script>  
+<script type="text/javascript" src="myRaphaelScript.js"></script>  
+  
+      
+</body>
+</html>
