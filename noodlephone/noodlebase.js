@@ -310,10 +310,6 @@ var inputPrompt=function(arg)
     return eval(prompt("input?"));
 }
 */
-//var inputPrompt=function(arg)
-//{
-//   return eval(noodlePrompt("input?"));
-//}
 var inputPrompt=function(arg)
 {
     return eval(noodlePrompt("input?"));
@@ -870,12 +866,14 @@ headings=[
 {"name":"sound operations","start": 9,"length": 4},
 {"name":"list operations","start": 13,"length": 5},
 {"name":"input output","start": 18,"length": 3},
-{"name":"numerical operations","start": 21,"length": 1},
-{"name":"control","start": 22,"length": 2},
-{"name":"shapes","start": 24,"length": 2},
-{"name":"shape operations","start": 26,"length": 7},
-{"name":"examples","start": 33,"length": 3},
-{"name":"internal","start": 36,"length": 3}];
+{"name":"numbers","start":21,"length":9},
+{"name":"numerical operations","start": 30,"length": 4},
+{"name":"control","start": 34,"length": 2},
+{"name":"shapes","start": 36,"length": 2},
+{"name":"shape operations","start": 38,"length": 7},
+{"name":"colors","start":45,"length":6},
+{"name":"examples","start": 51,"length": 3},
+{"name":"internal","start": 54,"length": 3}];
 var dict={
 "noteC":{"type":"prim", "function":noteC,"sig":{"out":["buffer"],"in":[]}},//no args
 "noteD":{"type":"prim", "function":noteD,"sig":{"out":["buffer"],"in":[]}},//no args
@@ -901,8 +899,21 @@ var dict={
 "inputPrompt":{"type":"prim","function":inputPrompt,"sig":{"out":["listIn"],"in":[]}},
 "inputBox":{"type":"prim","function":inputBox,"sig":{"out":["listIn"],"in":[]}},
 "outputAlert":{"type":"prim","function":outputAlert,"sig":{"out":[],"in":["listOut"]}},
+
+"halfside":{"type":"prim", "function":halfside,"sig":{"out":["val"],"in":[]}},//no args
+"quarter":{"type":"prim", "function":quarter,"sig":{"out":["val"],"in":[]}},//no args
+"half":{"type":"prim", "function":half,"sig":{"out":["val"],"in":[]}},//no args
+"quarter":{"type":"prim", "function":quarter,"sig":{"out":["val"],"in":[]}},//no args
+"one":{"type":"prim", "function":one,"sig":{"out":["val"],"in":[]}},//no args
+"two":{"type":"prim", "function":two,"sig":{"out":["val"],"in":[]}},//no args
+"pi":{"type":"prim", "function":pi,"sig":{"out":["val"],"in":[]}},//no args
+"hundred":{"type":"prim", "function":hundred,"sig":{"out":["val"],"in":[]}},//no args
+"twofiftyfive":{"type":"prim", "function":twofiftyfive,"sig":{"out":["val"],"in":[]}},//no args
     
 "add":{"type":"prim","function":add,"sig":{"out":["sum"],"in":["n0","n1"]}},
+"times":{"type":"prim","function":times,"sig":{"out":["product"],"in":["n0","n1"]}},
+"minus":{"type":"prim","function":minus,"sig":{"out":["diff"],"in":["n0","n1"]}},
+"divide":{"type":"prim","function":divide,"sig":{"out":["quotient"],"in":["n0","n1"]}},
 
 "branch":{"type":"special","function":branch,"sig":{"out":["ifTrue","ifFalse"],"in":["input","control"]}},
 "fanIn":{"type":"special","function":fanIn,"sig":{"out":["result"],"in":["in0","in1"]}},
@@ -917,6 +928,13 @@ var dict={
 "shift":{"type":"prim", "function":shift,"sig":{"in":["shapeIn","dx","dy"],"out":["shapeOut"]}}, 
 "zoom":{"type":"prim", "function":zoom,"sig":{"in":["shapeIn","zoom"],"out":["shapeOut"]}}, 
 "drawOn":{"type":"prim", "function":drawOn,"sig":{"in":["shape0","shape1"],"out":["shape"]}},
+
+"white":{"type":"prim", "function":white,"sig":{"out":["val"],"in":[]}},//no args
+"black":{"type":"prim", "function":black,"sig":{"out":["val"],"in":[]}},//no args
+"red":{"type":"prim", "function":red,"sig":{"out":["val"],"in":[]}},//no args
+"blue":{"type":"prim", "function":blue,"sig":{"out":["val"],"in":[]}},//no args
+"green":{"type":"prim", "function":green,"sig":{"out":["val"],"in":[]}},//no args
+"yellow":{"type":"prim", "function":yellow,"sig":{"out":["val"],"in":[]}},//no args
 
 "reverseTestDef":{"type":"def","def":reverseTestDef,"sig":{"out":[],"in":[]}},
 "shapeTestDef":{"type":"def","def":shapeTestDef,"sig":{"out":[],"in":[]}},
