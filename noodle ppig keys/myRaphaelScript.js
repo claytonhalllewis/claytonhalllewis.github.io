@@ -72,33 +72,17 @@ window.onload = function() {
     {
         var workspace={};
         workspace.isPalette=true;
-        workspace.paper = new Raphael(document.getElementById('palette_container'), PaletteWidth, PaletteHeight);  
-        var paletteField=workspace.paper.rect(0,0,PaletteWidth,PaletteHeight)
-        paletteField.attr("fill", FieldColor);
+        //workspace.paper = new Raphael(document.getElementById('palette_container'), PaletteWidth, PaletteHeight);  
+        //var paletteField=workspace.paper.rect(0,0,PaletteWidth,PaletteHeight)
+        //paletteField.attr("fill", FieldColor);
         workspace.nBlocks=0;
         workspace.x=paletteX;
-/*
-        workspace.intermediateRep=
-    {"blocks":
-    {
-        0:{"functionName":"externalIn","in":{},"out":{},"next":1},
-        1:{"functionName":"inputPrompt","in":{"listOut":"dummy"},"out":{},"next":2},
-        2:{"functionName":"head","in":{"listIn":"dummy"},"out":{"listOut":"dummy"},"next":3},
-        3:{"functionName":"branch","in":{"input":"dummy","control":"dummy"},"out":{"ifTrue":"dummy","ifFalse":"dummy"},"next":4},
-        4:{"functionName":"fanIn","in":{"in0":"dummy","in1":"dummy"},"out":{"result":"dummy"},"next":5},
-        5:{"functionName":"outputAlert","in":{"listIn":"dummy"},"out":{},"next":6},
-        6:{"functionName":"externalOut","in":{},"out":{},"next":7},
-        7:{"functionName":"reverse","in":{"listIn":"dummy"},"out":{"listOut":"dummy"},"next":8},
-        8:{"functionName":"reverseTestDef","in":{},"out":{},"next":null}
-    }
-    };
-   */
     workspace.intermediateRep=buildPaletteFromDict();
     workspace.updatePalette=function(intermediateRep)
     {
         workspace.intermediateRep=intermediateRep;
-        workspace.clear();
-        workspace.draw();
+        //workspace.clear(); ##have to do something here besides graphics??
+        //workspace.draw(); 
     }
     //"reverse":{"type":"def","def":defReverse,"sig":{"out":["listOut"],"in":["listIn"]}},
         workspace.draw=function()
@@ -107,9 +91,9 @@ window.onload = function() {
         }
         workspace.clear=function()
         {
-            workspace.paper.clear();
-            wsField=workspace.paper.rect(0,0,PaletteWidth,PaletteHeight);
-            wsField.attr("fill", FieldColor);
+            //workspace.paper.clear();
+            //wsField=workspace.paper.rect(0,0,PaletteWidth,PaletteHeight);
+            //wsField.attr("fill", FieldColor);
             workspace.nBlocks=0;
         }
         workspace.newButtonAction=function(evt)
@@ -122,13 +106,7 @@ window.onload = function() {
             activeWorkspace.selectedBlock.blockSelector=0;
             //NewIntermediateRep.blocks[0].shape[0].attr({"stroke":"#ff0000"});
         }
-/* button replaced by key n
-        var newButton=document.createElement('input');
-        newButton.setAttribute("type","button");
-        newButton.setAttribute("value","new");
-        newButton.onclick=workspace.newButtonAction;
-        document.getElementById('palette_container').appendChild(newButton);
-*/
+
         
         return workspace;
     }
@@ -169,14 +147,7 @@ window.onload = function() {
             }
             workspace.confirmationToggle=!workspace.confirmationToggle;
         }
-/* to be replaced by key
-        var discardButton=document.createElement('input');
-        discardButton.setAttribute("type","button");
-        discardButton.setAttribute("value","discard");
-        discardButton.onclick=workspace.discardButtonAction;
-        wsContainer.appendChild(discardButton);
-        //<input id = "run_button" type="button" onclick= "run()" value="run/stop">
-*/
+
         workspace.runButtonAction=function(evt)
         {
             //run(); //for test
@@ -196,13 +167,7 @@ window.onload = function() {
             //*/
             
         }
-/* replaced by key
-        var runButton=document.createElement('input');
-        runButton.setAttribute("type","button");
-        runButton.setAttribute("value","run/stop");
-        runButton.onclick=workspace.runButtonAction;
-        wsContainer.appendChild(runButton);
-*/
+
         workspace.editSelectedBlock=function()
         {
             //console.log("editSelectedBlock");
@@ -226,13 +191,7 @@ window.onload = function() {
             //console.log("editButtonAction");
             workspace.editSelectedBlock();
         }
-/* to be replaced by key
-        var editButton=document.createElement('input');
-        editButton.setAttribute("type","button");
-        editButton.setAttribute("value","edit block");
-        editButton.onclick=workspace.editButtonAction;
-        wsContainer.appendChild(editButton);
-*/
+
         
         workspace.saveButtonAction=function(evt)
         {
@@ -256,13 +215,7 @@ window.onload = function() {
             palette.updatePalette(buildPaletteFromDict());
         
         }
-/* to be replaced by key
-        var saveButton=document.createElement('input');
-        saveButton.setAttribute("type","button");
-        saveButton.setAttribute("value","save");
-        saveButton.onclick=workspace.saveButtonAction;
-        wsContainer.appendChild(saveButton);
-*/
+
         
         workspace.saveAsButtonAction=function(evt)
         {
@@ -285,13 +238,7 @@ window.onload = function() {
             //discard button gets rid of workspace
         
         }
-/* to be replaced by key
-        var saveAsButton=document.createElement('input');
-        saveAsButton.setAttribute("type","button");
-        saveAsButton.setAttribute("value","save as");
-        saveAsButton.onclick=workspace.saveAsButtonAction;
-        wsContainer.appendChild(saveAsButton);
-*/
+
 
         
         workspace.nBlocks=0;
@@ -351,14 +298,7 @@ window.onload = function() {
                 workspace.draw();
             }
         }
-       /* replaced by key
-        var deleteButton=document.createElement('input');
-        deleteButton.setAttribute("type","button");
-        deleteButton.setAttribute("value","delete");
-        deleteButton.onclick=workspace.deleteSelection;
-        wsContainer.appendChild(deleteButton);
-*/
-                
+                       
             
         workspace.deleteBlock=function(blockSelector) //deletes block only, not edges
         {
@@ -502,13 +442,7 @@ window.onload = function() {
             workspace.clear();
             workspace.draw();
         }
-/* replaced by key
-        var undoButton=document.createElement('input');
-        undoButton.setAttribute("type","button");
-        undoButton.setAttribute("value","undo");
-        undoButton.onclick=workspace.undoButtonAction;
-        wsContainer.appendChild(undoButton);
-*/
+
         workspace.clear=function()
         {
             workspace.paper.clear();
@@ -1090,10 +1024,8 @@ var drawFromIntermediateRep=function(workspace)
     }
 
     
-    //makeWorkspace=function(container,width,height,xPosition)
-    //var palette=makePalette();
     palette=makePalette();
-    palette.draw();
+    //palette.draw();
     
     var keyboardListener=function(evt)
     {
