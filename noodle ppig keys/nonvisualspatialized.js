@@ -348,7 +348,7 @@ activeWorkspace.intermediateRep.blocks[thisBlockCursor].extras.status="fresh";//
 var buttonNew=function()
 {
 	palette.newButtonAction("dummy");
-	utter(activeWorkspace.name);
+	utter("new workspace "+activeWorkspace.name);
 }
    
 
