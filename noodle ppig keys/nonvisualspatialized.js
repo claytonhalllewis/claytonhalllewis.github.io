@@ -614,6 +614,9 @@ var buttonUndo=function()
 }
 var buttonRun=function()
 {
-    utter("running");
+    if (!running)
+    	utter("running");
+    else
+	utter("stopping");
     activeWorkspace.runButtonAction("dummy");
 }
