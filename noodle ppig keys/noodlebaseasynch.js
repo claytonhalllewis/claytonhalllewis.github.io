@@ -467,14 +467,14 @@ var evalDefLoop=function(start,def,newEnv,node,callingEnv)
 
 	if ((node.extras)&&(node.extras.level))
 	{
-		alert("top level ending!");
+		//alert("top level ending!");
 		running=false;
 	}
 
-    	//alert();
+  
     
     	//console.log(def);
-   	alert("end of evaldefloop");
+   	//alert("end of evaldefloop");
 
 }
 	
