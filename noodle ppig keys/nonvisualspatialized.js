@@ -198,10 +198,10 @@ var moveDownInColumn=function()
 			ws.blockCursor=nextBlockSelector;
 			
 		}
-		else if (workspaceCursor<(workspaces.length-1))
+		else if (workspacesCursor<(workspaces.length-1))
 		{
-			workspaceCursor=workspaceCursor+1;
-			activeWorkspace=workspaces[workspaceCursor];
+			workspacesCursor=workspacesCursor+1;
+			activeWorkspace=workspaces[workspacesCursor];
 			ws=activeWorkspace;
 		}
 		ws.connectors=listConnectors(ws);
@@ -256,10 +256,10 @@ var moveUpInColumn=function()
 		console.log(workspaces);
 		if(ws.blockCursor==0)
 		{
-			if(workspaceCursor>0)
+			if(workspacesCursor>0)
 			{
-				workspaceCursor=workspaceCursor-1;
-				activeWorkspace=workspaces[workspaceCursor];
+				workspacesCursor=workspacesCursor-1;
+				activeWorkspace=workspaces[workspacesCursor];
 				ws=activeWorkspace;
 			}
 		}
@@ -417,7 +417,7 @@ var buttonNew=function()
    
 var addWorkspace=function(ws)
 {
-	workspaceCursor=workspaces.length;
+	workspacesCursor=workspaces.length;
 	workspaces[workspaces.length]=ws;
 }
 	
