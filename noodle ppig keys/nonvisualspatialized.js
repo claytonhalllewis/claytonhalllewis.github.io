@@ -200,7 +200,7 @@ var moveDownInColumn=function()
 		}
 		else if (workspaceCursor<(workspaces.length-1))
 		{
-			workspaceCursor=workspaceCursor-1;
+			workspaceCursor=workspaceCursor+1;
 			activeWorkspace=workspaces[workspaceCursor];
 			ws=activeWorkspace;
 		}
