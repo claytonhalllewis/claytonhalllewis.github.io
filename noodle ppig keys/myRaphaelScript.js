@@ -200,6 +200,10 @@ window.onload = function() {
         {
             console.log('saving');
 	    utter("saving "+ workspace.name);
+	    if(nameIsNew(workspace.name))
+	    {
+		headings[headings.length-1][length]++;
+	    }
             updateDictionary(workspace.name,dictionaryEntryFromIntermediateRep(workspace.intermediateRep));
             console.log("saved dict: ");
             console.log(dict);
@@ -1045,7 +1049,12 @@ var drawFromIntermediateRep=function(workspace)
         "edges":{}
     };
     
-        
+var nameIsNew=function(name)
+{
+	if(dict[name])
+		return false;
+	return true;
+}
         
         
         
