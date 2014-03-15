@@ -200,6 +200,7 @@ var moveDownInColumn=function()
 		}
 		else if (workspacesCursor<(workspaces.length-1))
 		{
+			console.log("moving down in workspaces");
 			workspacesCursor=workspacesCursor+1;
 			activeWorkspace=workspaces[workspacesCursor];
 			ws=activeWorkspace;
