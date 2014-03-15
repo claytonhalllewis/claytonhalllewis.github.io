@@ -189,6 +189,7 @@ window.onload = function() {
 	    utter("editing block "+name);
             var newWorkspace=makeWorkspace(makeIntermediateRep(name),"workspace_container_container",WorkspaceWidth,WorkspaceHeight,workX);
             newWorkspace.name=name;
+	    addWorkspace(name);
             newWorkspace.draw();
         }
         workspace.editButtonAction=function(evt)
