@@ -203,7 +203,7 @@ window.onload = function() {
 	    if(nameIsNew(workspace.name))
 	    {
 		console.log("new name");
-		headings[headings.length-1][length]=headings[headings.length-1][length]+1;
+		headings[headings.length-1]["length"]=headings[headings.length-1]["length"]+1;
 		console.log(headings);
 	    }
             updateDictionary(workspace.name,dictionaryEntryFromIntermediateRep(workspace.intermediateRep));
