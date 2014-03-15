@@ -658,5 +658,6 @@ var buttonRun=function()
 }
 var buttonEdit=function()
 {
+	console.log("edit");
 	activeWorkspace.editButtonAction("dummy");
 }

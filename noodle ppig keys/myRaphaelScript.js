@@ -190,7 +190,7 @@ window.onload = function() {
         }
         workspace.editButtonAction=function(evt)
         {
-            //console.log("editButtonAction");
+            console.log("editButtonAction");
             workspace.editSelectedBlock();
         }
 
