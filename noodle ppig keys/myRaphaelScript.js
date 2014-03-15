@@ -202,6 +202,7 @@ window.onload = function() {
 	    utter("saving "+ workspace.name);
 	    if(nameIsNew(workspace.name))
 	    {
+		console.log("new name");
 		headings[headings.length-1][length]=headings[headings.length-1][length]+1;
 		console.log(headings);
 	    }
