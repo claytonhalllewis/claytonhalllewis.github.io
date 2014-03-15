@@ -101,10 +101,13 @@ window.onload = function() {
             //mObj=JSON.parse(JSON.stringify(jsonObject))
             //console.log("setting activeWorkspace");
             activeWorkspace=makeWorkspace(JSON.parse(JSON.stringify(NewIntermediateRep)),"workspace_container_container",WorkspaceWidth,WorkspaceHeight,workX);
-            activeWorkspace.name=noodlePrompt("name of new function?");
+	    utter("type name of new function");
+	    setTimeout(function(){
+            activeWorkspace.name=prompt("name of new function?");
+	    utter("creating new workspace "+activeWorkspace.name);
             activeWorkspace.draw();
-            activeWorkspace.selectedBlock.blockSelector=0;
-            //NewIntermediateRep.blocks[0].shape[0].attr({"stroke":"#ff0000"});
+            activeWorkspace.selectedBlock.blockSelector=0;},500);
+	    
         }
 
         

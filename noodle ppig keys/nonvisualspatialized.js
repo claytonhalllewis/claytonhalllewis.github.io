@@ -358,7 +358,7 @@ activeWorkspace.blockCursor=activeWorkspace.intermediateRep.blocks[activeWorkspa
 var buttonNew=function()
 {
 	palette.newButtonAction("dummy");
-	utter("creating new workspace "+activeWorkspace.name);
+	
 }
    
 
