@@ -194,14 +194,16 @@ var moveDownInColumn=function()
 		if (nextBlockSelector!=null)
 		{
 			ws.blockCursor=nextBlockSelector;
-			ws.connectors=listConnectors(ws);
-        		ws.connectorCursor=0;
+			
 		}
 		else if (workspaceCursor<(workspaces.length-1))
 		{
 			workspaceCursor=workspaceCursor-1;
 			activeWorkspace=workspaces[workspaceCursor];
+			ws=activeWorkspace;
 		}
+		ws.connectors=listConnectors(ws);
+        	ws.connectorCursor=0;
 	}
 	else if(navColumn=="connectors")
 	{
@@ -248,7 +250,19 @@ var moveUpInColumn=function()
 	}
 	else if(navColumn=="workspace")
 	{
-		ws.blockCursor=prevBlock(ws,ws.blockCursor);
+		if(ws.blockCursor==0)
+		{
+			if(workspaceCursor>0)
+			{
+				workspaceCursor=workspaceCursor-1;
+				activeWorkspace=workspaces[workspaceCursor];
+				ws=activeWorkspace;
+			}
+		}
+		else
+		{
+			ws.blockCursor=prevBlock(ws,ws.blockCursor);
+		}
 		ws.connectors=listConnectors(ws);
         	ws.connectorCursor=0;
 	}
