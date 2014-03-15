@@ -51,6 +51,10 @@ var handleKey=function(keyAsString)
     {
        buttonRun();
     }
+    else if (keyAsString=="e")
+    {
+       buttonEdit();
+    }
     else
     {
         console.log("unrecognized key <"+keyAsString+">");
@@ -651,4 +655,8 @@ var buttonRun=function()
     else
 	utter("stopping");
     activeWorkspace.runButtonAction("dummy");
+}
+var buttonEdit=function()
+{
+	activeWorkspace.editButtonAction("dummy");
 }

@@ -173,18 +173,17 @@ window.onload = function() {
 
         workspace.editSelectedBlock=function()
         {
-            //console.log("editSelectedBlock");
-            //console.log(workspace);
-            //[{"functionName":"isNull",
-            //	"in":{"listIn":"listIn"},
-            //	"out":{"bool":"b0"}},
-            //example dictionary entry: 
-            //"reverse":{"type":"def","def":defReverse,"sig":{"out":["listOut"],"in":["listIn"]}},
             if (workspace.selectedBlock.block==null)
+	    {
+		utter("no block selected");
                 return;
+	    }
             var name=workspace.selectedBlock.block.functionName;
             if (dict[name].type!="def")
+	    {
+		utter("cannot edit primitive operation");
                 return;
+	    }
             var newWorkspace=makeWorkspace(makeIntermediateRep(name),"workspace_container_container",WorkspaceWidth,WorkspaceHeight,workX);
             newWorkspace.name=name;
             newWorkspace.draw();
