@@ -184,6 +184,7 @@ window.onload = function() {
 		utter("cannot edit primitive operation");
                 return;
 	    }
+	    utter("editing block"+name);
             var newWorkspace=makeWorkspace(makeIntermediateRep(name),"workspace_container_container",WorkspaceWidth,WorkspaceHeight,workX);
             newWorkspace.name=name;
             newWorkspace.draw();
