@@ -319,17 +319,27 @@ var buttonS=function()
                 {
                     //handle stuff not in signature for specials like inputPromptNew
                     var thisBlockCursor=activeWorkspace.intermediateRep.blocks[activeWorkspace.blockCursor].next;
+		   utter("type prompt name");
+		setTimeout(function(){
                     var promptName=prompt("prompt name?");
                     activeWorkspace.intermediateRep.blocks[thisBlockCursor].extras={};
                     activeWorkspace.intermediateRep.blocks[thisBlockCursor].extras.name=promptName;
 activeWorkspace.intermediateRep.blocks[thisBlockCursor].extras.status="fresh";//for one shot
+activeWorkspace.blockCursor=activeWorkspace.intermediateRep.blocks[activeWorkspace.blockCursor].next;
+         
+        	activeWorkspace.clear();
+        	activeWorkspace.draw();
+        	activeWorkspace.selectionType="none";},500);
         
                 }
+		else
+		{
     activeWorkspace.blockCursor=activeWorkspace.intermediateRep.blocks[activeWorkspace.blockCursor].next;
          
         	activeWorkspace.clear();
         	activeWorkspace.draw();
         	activeWorkspace.selectionType="none";
+		}
     	}
     	else if(navColumn=="connectors")
     	{
