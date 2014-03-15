@@ -101,10 +101,12 @@ window.onload = function() {
             //mObj=JSON.parse(JSON.stringify(jsonObject))
             //console.log("setting activeWorkspace");
             activeWorkspace=makeWorkspace(JSON.parse(JSON.stringify(NewIntermediateRep)),"workspace_container_container",WorkspaceWidth,WorkspaceHeight,workX);
+	    addWorkspace(activeWorkspace);
 	    utter("type name of new function");
 	    setTimeout(function(){
             activeWorkspace.name=prompt("name of new function?");
 	    utter("creating new workspace "+activeWorkspace.name);
+	    
             activeWorkspace.draw();
             activeWorkspace.selectedBlock.blockSelector=0;},500);
 	    

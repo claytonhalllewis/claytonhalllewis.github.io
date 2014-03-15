@@ -8,6 +8,8 @@ var headings;
 var headingsCursor=0;
 var palette;
 var paletteCursor=0;
+var workspaces=[];
+var workspacesCursor=0;
 var activeWorkspace=null;
 var navColumn="headings";
 var lastOp="nav";
@@ -194,6 +196,11 @@ var moveDownInColumn=function()
 			ws.blockCursor=nextBlockSelector;
 			ws.connectors=listConnectors(ws);
         		ws.connectorCursor=0;
+		}
+		else if (workspaceCursor<(workspaces.length-1)
+		{
+			workspaceCursor=workspaceCursor-1;
+			activeWorkspace=workspaces[workspaceCursor];
 		}
 	}
 	else if(navColumn=="connectors")
@@ -390,7 +397,12 @@ var buttonNew=function()
 	
 }
    
-
+var addWorkspace=function(ws)
+{
+	workspaceCursor=workspaces.length;
+	workspaces[workspaces.length]=ws;
+}
+	
 
 
 var utter=function(s)
