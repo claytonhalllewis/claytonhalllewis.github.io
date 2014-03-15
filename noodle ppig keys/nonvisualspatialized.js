@@ -190,6 +190,8 @@ var moveDownInColumn=function()
 	}
 	else if(navColumn=="workspace")
 	{
+		console.log("workspaces");
+		console.log(workspaces);
 		var nextBlockSelector=ws.intermediateRep.blocks[ws.blockCursor].next;
 		if (nextBlockSelector!=null)
 		{
@@ -250,6 +252,8 @@ var moveUpInColumn=function()
 	}
 	else if(navColumn=="workspace")
 	{
+		console.log("workspaces");
+		console.log(workspaces);
 		if(ws.blockCursor==0)
 		{
 			if(workspaceCursor>0)
