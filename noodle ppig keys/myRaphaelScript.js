@@ -202,7 +202,8 @@ window.onload = function() {
 	    utter("saving "+ workspace.name);
 	    if(nameIsNew(workspace.name))
 	    {
-		headings[headings.length-1][length]++;
+		headings[headings.length-1][length]=headings[headings.length-1][length]+1;
+		console.log(headings);
 	    }
             updateDictionary(workspace.name,dictionaryEntryFromIntermediateRep(workspace.intermediateRep));
             console.log("saved dict: ");
