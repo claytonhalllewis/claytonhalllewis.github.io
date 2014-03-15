@@ -243,6 +243,8 @@ var moveUpInColumn=function()
         	{
             		ws.connectorCursor=ws.connectorCursor-1;
         	}
+		//else editSpecial(); //does not move cursor
+		//work this out to edit things like values of consts
     	}
 	else utter("boop invalid nav column");
 }
@@ -513,6 +515,7 @@ var findConnectorCursor=function(oldConnector,ws)
     
 var selectConnector=function(ws)
 {
+    
     var thisConnector=ws.connectors[ws.connectorCursor];
     
     var type;
