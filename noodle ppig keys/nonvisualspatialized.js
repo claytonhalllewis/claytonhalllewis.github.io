@@ -314,7 +314,7 @@ var buttonS=function()
 
     activeWorkspace.placeBlock(palette.intermediateRep.blocks[paletteCursor].functionName, activeWorkspace.blockCursor);
     //check for inputPromptNew or inputOneShot and prompt for name
-            if ((palette.intermediateRep.blocks[paletteCursor].functionName=="inputPromptNew")||(palette.intermediateRep.blocks[paletteCursor].functionName=="inputOneShot"))
+            if ((palette.intermediateRep.blocks[paletteCursor].functionName=="inputPrompt")||(palette.intermediateRep.blocks[paletteCursor].functionName=="inputOneShot"))
 
                 {
                     //handle stuff not in signature for specials like inputPromptNew
