@@ -322,6 +322,7 @@ var buttonS=function()
 		   utter("type prompt name");
 		setTimeout(function(){
                     var promptName=prompt("prompt name?");
+		    utter("prompt added");
                     activeWorkspace.intermediateRep.blocks[thisBlockCursor].extras={};
                     activeWorkspace.intermediateRep.blocks[thisBlockCursor].extras.name=promptName;
 activeWorkspace.intermediateRep.blocks[thisBlockCursor].extras.status="fresh";//for one shot
