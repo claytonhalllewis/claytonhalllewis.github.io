@@ -180,14 +180,15 @@ var add=function(arg)
 //needs to be special so can get at extra field of node
 var inputPromptNew=function(arg)
 {
-	//return eval(noodlePrompt("input?"));  //to be worked up in sound version
-
-	console.log(arg);
-	//arg.env[arg.node.out.ifTrue].available=true; //check against this
+	utter(arg.node.extras.name);
+	setTimeout(function(){inputPromptContinue(arg);},500);
+}
+var inputPromptContinue=function(arg)
+{
+	//console.log(arg);
 	arg.env[arg.node.out.listIn].available=true;	
 //console.log("setting avail of "+arg.node.out.value+" to "+true);
 	arg.env[arg.node.out.listIn].value=eval(prompt(arg.node.extras.name));
-	return false; //const cannot change
 }
 var inputOneShot=function(arg)
 {
