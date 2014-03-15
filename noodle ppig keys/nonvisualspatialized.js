@@ -420,6 +420,7 @@ var addWorkspace=function(ws)
 {
 	workspacesCursor=workspaces.length;
 	workspaces[workspaces.length]=ws;
+	activeWorkspace=workspaces[workspacesCursor];
 }
 	
 
