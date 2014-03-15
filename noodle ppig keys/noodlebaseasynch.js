@@ -181,14 +181,16 @@ var add=function(arg)
 var inputPromptNew=function(arg)
 {
 	utter(arg.node.extras.name);
+	arg.env[arg.node.out.listIn].available="pending";
 	setTimeout(function(){inputPromptContinue(arg);},500);
 }
 var inputPromptContinue=function(arg)
 {
 	//console.log(arg);
-	arg.env[arg.node.out.listIn].available=true;	
+		
 //console.log("setting avail of "+arg.node.out.value+" to "+true);
 	arg.env[arg.node.out.listIn].value=eval(prompt(arg.node.extras.name));
+	arg.env[arg.node.out.listIn].available=true;
 }
 var inputOneShot=function(arg)
 {
@@ -197,6 +199,7 @@ var inputOneShot=function(arg)
 	{
 		utter(arg.node.extras.name);
 		arg.node.extras.status="used";
+		arg.env[arg.node.out.listIn].available="pending";
 		setTimeout(function(){inputOneShotContinue(arg);},500);
 	}
 	//does nothing after the first time
