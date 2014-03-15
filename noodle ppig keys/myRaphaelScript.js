@@ -184,7 +184,7 @@ window.onload = function() {
 		utter("cannot edit primitive operation");
                 return;
 	    }
-	    utter("editing block"+name);
+	    utter("editing block "+name);
             var newWorkspace=makeWorkspace(makeIntermediateRep(name),"workspace_container_container",WorkspaceWidth,WorkspaceHeight,workX);
             newWorkspace.name=name;
             newWorkspace.draw();
@@ -196,25 +196,13 @@ window.onload = function() {
         }
 
         
-        workspace.saveButtonAction=function(evt)
-        {
-            //console.log("saveButtonAction");
-            if (workspace.confirmationToggle)
-            {
-                alert("are you sure?");
-            }
-            else
-            {
-                workspace.save();
-            }
-            workspace.confirmationToggle=!workspace.confirmationToggle;
-        }
         workspace.save=function()
         {
             console.log('saving');
+	    utter("saving "+ workspace.name);
             updateDictionary(workspace.name,dictionaryEntryFromIntermediateRep(workspace.intermediateRep));
-            //console.log("saved dict: ");
-            //console.log(dict);
+            console.log("saved dict: ");
+            console.log(dict);
             palette.updatePalette(buildPaletteFromDict());
         
         }

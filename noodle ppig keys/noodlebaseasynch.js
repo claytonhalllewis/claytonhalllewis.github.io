@@ -671,7 +671,9 @@ headings=[
 {"name":"shape operations","start": 42,"length": 7},
 {"name":"colors","start":49,"length":6},
 {"name":"examples","start": 55,"length": 4},
-{"name":"internal","start": 59,"length": 2}];
+{"name":"internal","start": 59,"length": 2},
+{"name":"new","start": 61,"length": 0}
+];
 var dict={
 "noteC":{"type":"prim", "function":noteC,"sig":{"out":["buffer"],"in":[]}},//no args
 "noteD":{"type":"prim", "function":noteD,"sig":{"out":["buffer"],"in":[]}},//no args

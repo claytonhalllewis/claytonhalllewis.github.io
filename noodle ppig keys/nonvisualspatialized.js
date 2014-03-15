@@ -55,6 +55,10 @@ var handleKey=function(keyAsString)
     {
        buttonEdit();
     }
+    else if (keyAsString=="s")
+    {
+       buttonSave();
+    }
     else
     {
         console.log("unrecognized key <"+keyAsString+">");
@@ -660,4 +664,9 @@ var buttonEdit=function()
 {
 	console.log("edit");
 	activeWorkspace.editButtonAction("dummy");
+}
+var buttonSave=function()
+{
+	console.log("edit");
+	activeWorkspace.save();
 }
