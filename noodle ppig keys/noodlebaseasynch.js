@@ -196,6 +196,7 @@ var inputOneShot=function(arg)
 	if (arg.node.extras.status=="fresh")
 	{
 		utter(arg.node.extras.name);
+		arg.node.extras.status="used";
 		setTimeout(function(){inputOneShotContinue(arg);},500);
 	}
 	//does nothing after the first time
@@ -204,11 +205,11 @@ var inputOneShot=function(arg)
 var inputOneShotContinue=function(arg)
 {
 	console.log(arg);
-	arg.env[arg.node.out.listIn].available=true;	
+		
 	//console.log("setting avail of "+arg.node.out.value+" to "+true);
 	arg.env[arg.node.out.listIn].value=eval(prompt(arg.node.extras.name));
-	arg.node.extras.status="used";
-	
+	arg.env[arg.node.out.listIn].available=true;
+		
 		
 }
 //"counter":{"type":"special","function":counter,"sig":{"out":["value"],"in":[],"extras":["value","interval","status"]}},
