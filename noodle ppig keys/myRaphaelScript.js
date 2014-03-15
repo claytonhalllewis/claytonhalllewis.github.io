@@ -1052,9 +1052,7 @@ var drawFromIntermediateRep=function(workspace)
     
 var nameIsNew=function(name)
 {
-	if(dict[name])
-		return false;
-	return true;
+	return (typeof dict[name] === "undefined")
 }
         
         
