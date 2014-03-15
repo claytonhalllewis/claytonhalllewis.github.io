@@ -333,6 +333,24 @@ activeWorkspace.blockCursor=activeWorkspace.intermediateRep.blocks[activeWorkspa
         	activeWorkspace.selectionType="none";},500);
         
                 }
+		if (palette.intermediateRep.blocks[paletteCursor].functionName=="const")
+                {
+                    //prompt for value
+                    var thisBlockCursor=activeWorkspace.intermediateRep.blocks[activeWorkspace.blockCursor].next;
+		   utter("type value");
+		setTimeout(function(){
+                    var promptName=prompt("value?");
+		    utter("value added");
+                    activeWorkspace.intermediateRep.blocks[thisBlockCursor].extras={};
+                    activeWorkspace.intermediateRep.blocks[thisBlockCursor].extras.value=promptName;
+activeWorkspace.blockCursor=activeWorkspace.intermediateRep.blocks[activeWorkspace.blockCursor].next;
+         
+        	activeWorkspace.clear();
+        	activeWorkspace.draw();
+        	activeWorkspace.selectionType="none";},500);
+        
+                }
+
 		else
 		{
     activeWorkspace.blockCursor=activeWorkspace.intermediateRep.blocks[activeWorkspace.blockCursor].next;
