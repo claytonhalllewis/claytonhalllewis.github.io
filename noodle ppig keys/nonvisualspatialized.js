@@ -197,7 +197,7 @@ var moveDownInColumn=function()
 			ws.connectors=listConnectors(ws);
         		ws.connectorCursor=0;
 		}
-		else if (workspaceCursor<(workspaces.length-1)
+		else if (workspaceCursor<(workspaces.length-1))
 		{
 			workspaceCursor=workspaceCursor-1;
 			activeWorkspace=workspaces[workspaceCursor];
