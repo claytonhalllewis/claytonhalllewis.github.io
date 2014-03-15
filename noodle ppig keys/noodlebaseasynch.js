@@ -664,14 +664,14 @@ headings=[
 {"name":"sound operations","start": 10,"length": 5},
 {"name":"list operations","start": 15,"length": 5},
 {"name":"input output","start": 20,"length": 3},
-{"name":"numbers","start":23,"length":11},
-{"name":"numerical operations","start": 34,"length": 4},
-{"name":"control","start": 38,"length": 3},
-{"name":"shapes","start": 41,"length": 2},
-{"name":"shape operations","start": 43,"length": 7},
-{"name":"colors","start":50,"length":6},
-{"name":"examples","start": 56,"length": 4},
-{"name":"internal","start": 60,"length": 2}];
+{"name":"numbers","start":23,"length":10},
+{"name":"numerical operations","start": 33,"length": 4},
+{"name":"control","start": 37,"length": 3},
+{"name":"shapes","start": 40,"length": 2},
+{"name":"shape operations","start": 42,"length": 7},
+{"name":"colors","start":49,"length":6},
+{"name":"examples","start": 55,"length": 4},
+{"name":"internal","start": 59,"length": 2}];
 var dict={
 "noteC":{"type":"prim", "function":noteC,"sig":{"out":["buffer"],"in":[]}},//no args
 "noteD":{"type":"prim", "function":noteD,"sig":{"out":["buffer"],"in":[]}},//no args
@@ -703,7 +703,6 @@ var dict={
 "const":{"type":"special","function":constant,"sig":{"out":["value"],"in":[],"extras":["value"]}},
 "counter":{"type":"special","function":counter,"sig":{"out":["value"],"in":[],"extras":["value","interval","status"]}},
 "halfside":{"type":"prim", "function":halfside,"sig":{"out":["val"],"in":[]}},//no args
-"quarter":{"type":"prim", "function":quarter,"sig":{"out":["val"],"in":[]}},//no args
 "half":{"type":"prim", "function":half,"sig":{"out":["val"],"in":[]}},//no args
 "quarter":{"type":"prim", "function":quarter,"sig":{"out":["val"],"in":[]}},//no args
 "one":{"type":"prim", "function":one,"sig":{"out":["val"],"in":[]}},//no args
