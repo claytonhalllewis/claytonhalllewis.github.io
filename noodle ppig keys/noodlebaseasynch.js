@@ -81,6 +81,39 @@ var defReverse=[{"functionName":"fanOut",
 		"out":{"result":"listOut"}}
 		];
 
+var shapeTestDef=[{"functionName":"equitri",
+		"in":{},
+		"out":{"triangle":"tr"}},
+		{"functionName":"white",
+		"in":{},
+		"out":{"val":"w"}},
+		{"functionName":"const",
+		"in":{},
+		"extras":{"value":.785},
+		"out":{"value":"a"}},
+		{"functionName":"half",
+		"in":{},
+		"out":{"val":"z"}},	
+		{"functionName":"square",
+		"in":{},
+		"out":{"square":"sq"}},
+		{"functionName":"zoom",
+		"in":{"shapeIn":"tr","zoom":"z"},
+		"out":{"shapeOut":"ztr"}},
+		{"functionName":"rotate",
+		"in":{"shapeIn":"sq","angle":"a"},
+		"out":{"shapeOut":"s1"}},
+		{"functionName":"paint",
+		"in":{"shapeIn":"ztr","color":"w"},
+		"out":{"shapeOut":"a3"}},
+		{"functionName":"drawOn",
+		"in":{"shape0":"a3","shape1":"s1"},
+		"out":{"shape":"r"}},
+		{"functionName":"outputShape",
+		"in":{"shape":"r"},
+		"out":{}}
+		 ];
+
 var shapeSpinTestDef=[{"functionName":"equitri",
 		"in":{},
 		"out":{"triangle":"a0"}},
@@ -670,9 +703,9 @@ headings=[
 {"name":"shapes","start": 40,"length": 2},
 {"name":"shape operations","start": 42,"length": 7},
 {"name":"colors","start":49,"length":6},
-{"name":"examples","start": 55,"length": 4},
-{"name":"internal","start": 59,"length": 2},
-{"name":"new","start": 61,"length": 0}
+{"name":"examples","start": 55,"length": 5},
+{"name":"internal","start": 60,"length": 2},
+{"name":"new","start": 62,"length": 0}
 ];
 var dict={
 "noteC":{"type":"prim", "function":noteC,"sig":{"out":["buffer"],"in":[]}},//no args
@@ -744,6 +777,7 @@ var dict={
 "counterTestDef":{"type":"def","def":counterTestDef,"sig":{"out":[],"in":[]}},
 "shapeSpinTestDef":{"type":"def","def":shapeSpinTestDef,"sig":{"out":[],"in":[]}},
 "soundTestDef":{"type":"def","def":soundTestDef,"sig":{"out":[],"in":[]}},
+"shapeTestDef":{"type":"def","def":shapeTestDef,"sig":{"out":[],"in":[]}}
 
 "externalIn":{"type":"external","sig":{}},
 "externalOut":{"type":"external","sig":{}}
