@@ -777,7 +777,7 @@ var dict={
 "counterTestDef":{"type":"def","def":counterTestDef,"sig":{"out":[],"in":[]}},
 "shapeSpinTestDef":{"type":"def","def":shapeSpinTestDef,"sig":{"out":[],"in":[]}},
 "soundTestDef":{"type":"def","def":soundTestDef,"sig":{"out":[],"in":[]}},
-"shapeTestDef":{"type":"def","def":shapeTestDef,"sig":{"out":[],"in":[]}}
+"shapeTestDef":{"type":"def","def":shapeTestDef,"sig":{"out":[],"in":[]}},
 
 "externalIn":{"type":"external","sig":{}},
 "externalOut":{"type":"external","sig":{}}
