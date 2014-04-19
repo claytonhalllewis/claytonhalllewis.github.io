@@ -1,0 +1,762 @@
+<html>
+<head> <title>4D Rover</title>
+<script type="application/javascript">  
+//to do
+//[x]change handling of scene
+//[]change to image buffer
+//double buffering??
+//speedup
+//improved UI
+//make color adjustments work (requires extracting components from color strings)
+//??animation as a display option for w
+//draw a plan view?
+//eventually can "clip" rays based on assumption that shape is within a known radius of orig
+
+
+
+var outcount=0;
+
+var SIDE= 150;
+var MAXLAMBDA =15;
+var JUMP= 0.05;
+var scene;
+var ctx;
+var imgData;
+
+var setUpCanvas=function()
+{
+	var canvas = document.getElementById("canvas");  
+	ctx = canvas.getContext("2d"); 
+	imgData=ctx.createImageData(SIDE,SIDE);
+	for (var i=0;i<imgData.data.length;i+=4)
+	{
+		imgData.data[i]=255;
+		imgData.data[i+1]=255;
+		imgData.data[i+2]=255;
+		imgData.data[i+3]=255;   //set alpha once and for all
+	}
+}
+
+/* these are declarations from original c version
+struct point
+{
+	float x;
+	float y;
+	float z;
+	float w;
+};
+struct viewer
+{
+	struct point vp; //viewpoint
+	struct point nw; //corners of retina
+	struct point ne;
+	struct point se;
+	struct point sw;
+};
+struct matrix
+{
+	struct point rowx;
+	struct point rowy;
+	struct point rowz;
+	struct point roww;
+	
+};
+*/
+var delta;
+var v;
+var inscene=function(){};
+var keyboardListener=function(evt)
+    {
+	evt = evt || window.event;
+            //var keyAsString=String.fromCharCode(evt.keyCode);
+            //above worked in chrome... trying below for firefox
+            //var keyAsString=String.fromCharCode(evt.charCode)
+            var keyAsString=String.fromCharCode(evt.keyCode).toLowerCase();
+
+            //console.log("keydown");
+            //console.log(evt.keyCode);
+            //console.log("<"+keyAsString+">");
+	    if(evt.keyCode==191) //slash for select
+		keyAsString="/";
+            //handleKey(keyAsString);
+	    console.log("keyAsString <"+keyAsString+">");
+	    doCommand(keyAsString);
+    }
+    document.onkeydown=keyboardListener;
+
+
+function run()
+{
+	scene=prompt_for_scene();
+	v=newviewer();
+	draw();
+}
+function doCommand(command)
+{
+			//commandBox=document.getElementById("command");
+			//command=commandBox.value;
+			switch(command)
+			{
+				case 'a':
+					{
+						applymatrix(v,add(v.vp,point(delta,0.0,0.0,0.0)));
+						break;
+					}
+				case 'z':
+					{
+						applymatrix(v,add(v.vp,point(-delta,0.0,0.0,0.0)));
+						break;
+					}
+				case 's':
+					{
+						applymatrix(v,add(v.vp,point(0.0,delta,0.0,0.0)));
+						break;
+					}
+				case 'x':
+					{
+						applymatrix(v,add(v.vp,point(0.0,-delta,0.0,0.0)));				
+						break;
+					}
+				case 'd':
+					{
+						applymatrix(v,add(v.vp,point(0.0,0.0,delta,0.0)));					
+						break;
+					}
+				case 'c':
+					{
+						applymatrix(v,add(v.vp,point(0.0,0.0,-delta,0.0)));					
+						break;
+					}
+				case 'f':
+					{
+						applymatrix(v,add(v.vp,point(0.0,0.0,0.0,delta)));						
+						break;
+					}
+				case 'v':
+					{
+
+						applymatrix(v,add(v.vp,point(0.0,0.0,0.0,-delta)));				
+						break;
+					}
+				case 't':
+					{
+						translate(v,point(1.0,0.0,0.0,0.0));
+						break;
+					}
+				case 'g':
+					{
+						translate(v,point(-1.0,0.0,0.0,0.0));
+						break;
+					}
+				case 'y':
+					{
+						translate(v,point(0.0,1.0,0.0,0.0));
+						break;
+					}
+				case 'h':
+					{
+						translate(v,point(0.0,-1.0,0.0,0.0));
+						break;
+					}
+				case 'u':
+					{
+						translate(v,point(0.0,0.0,1.0,0.0));
+						break;
+					}
+				case 'j':
+					{
+						translate(v,point(0.0,0.0,-1.0,0.0));
+						break;
+					}
+				case 'i':
+					{
+						translate(v,point(0.0,0.0,0.0,1.0));
+						break;
+					}
+				case 'k':
+					{
+						translate(v,point(0.0,0.0,0.0,-1.0));
+						break;
+					}
+				case 'p':
+					{
+						printviewer(v);
+						break;
+					}
+				
+				
+				case 'r': 
+					{
+						v=newviewer();
+						break;
+					}
+				case 'w':
+					{
+						v=ywPlane();
+						break;
+					}
+				case 'e':
+					{
+						v=zwPlane();
+						break;
+					}
+				case 'o':
+					{
+						v=xzPlane();
+						break;
+					}	
+				default:;
+			}
+			
+			draw();
+			
+}
+
+function newviewer()
+{
+	var v={};
+	v.vp=point(0.0,0.0,12.0,0.0);
+	v.nw=point(-1.0,1.0,9.0,0.0);
+	v.ne=point(1.0,1.0,9.0,0.0);
+	v.se=point(1.0,-1.0,9.0,0.0);
+	v.sw=point(-1.0,-1.0,9.0,0.0);
+	
+	return v;
+}
+function ywPlane()
+{
+	var v={};
+	v.vp=point(12,0,0,0);
+	v.nw=point(9,1,0,1);
+	v.ne=point(9,1,0,-1);
+	v.se=point(9,-1,0,-1);
+	v.sw=point(9,-1,0,1);
+	
+	return v;
+}
+function zwPlane()
+{
+	var v={};
+	v.vp=point(0,0,12,0);
+	v.nw=point(0,1,9,-1);
+	v.ne=point(0,1,9,1);
+	v.se=point(0,-1,9,1);
+	v.sw=point(0,-1,9,-1);
+	
+	return v;
+}
+function xzPlane()
+{
+	var v={};
+	v.vp=point(0,12,0,0);
+	v.nw=point(1,9,1,0);
+	v.ne=point(1,9,-1,0);
+	v.se=point(-1,9,-1,0);
+	v.sw=point(-1,9,1,0);
+	
+	return v;
+}
+function translate(v,t)
+{
+	v.vp=add(v.vp,t);
+	v.nw=add(v.nw,t);
+	v.ne=add(v.ne,t);
+	v.se=add(v.se,t);
+	v.sw=add(v.sw,t);
+}
+function printviewer(v)
+{
+	alert("Viewer \n"+printpoint(v.vp)+
+	printpoint(v.nw)+
+	printpoint(v.ne)+
+	printpoint(v.se)+
+	printpoint(v.sw));
+	
+}
+function printpoint(p)
+{
+	return "("+p.x+", "+p.y+", "+p.z+", "+p.w+") ";
+}
+
+function applymatrix(v, newvp)
+{
+	//here newvp is new position of viewpoint
+	//idea is to transform whole viewer to correspond
+	//do this by computing rotation matrix and translation, the applying this to viewer
+	var rot=makematrix(v.vp,newvp);
+	transformviewer(rot,maketrans(v.vp,newvp,rot),v);
+}
+function maketrans(v0, v1,  rot)
+{
+	return subtract(v1,apply(rot,v0));
+}
+function identity()
+{
+	var id={};
+	id.rowx=point(1.0,0.0,0.0,0.0);
+	id.rowy=point(0.0,1.0,0.0,0.0);
+	id.rowz=point(0.0,0.0,1.0,0.0);
+	id.roww=point(0.0,0.0,0.0,1.0);
+	return id;
+}
+	
+function makematrix(v0,v1)
+{
+
+	var x=point(1.0,0.0,0.0,0.0);
+	var y=point(0.0,1.0,0.0,0.0);
+	var z=point(0.0,0.0,1.0,0.0);
+	var w=point(0.0,0.0,0.0,1.0);
+	var d=norm(v0);
+	if(d==0) 
+	{
+		alert("zero divide");
+		return identity();
+	}
+	var vx=mult(1.0/d,v0);
+	var tv=subtract(v1,mult(dot(vx,v1),vx));
+	d=norm(tv);
+	if(d==0) 
+	{
+		alert("zero divide");
+		return identity();
+	}
+	var vy=mult(1.0/d,tv);
+	//printf("vxvx %f, vyvy %f vxvy %f\n",dot(vx,vx),dot(vy,vy),dot(vx,vy));
+	var cos=dot(v0,v1)/(norm(v0)*norm(v1));
+	var sin=Math.sqrt(1.0-cos*cos);
+	var a=subtract(mult(cos,vx),mult(sin,vy));
+	var b=add(mult(sin,vx),mult(cos,vy));
+	var r={};
+	r.rowx=add(add(mult(vx.x,a),mult(vy.x,b)),subtract(x,add(mult(vx.x,vx),mult(vy.x,vy))));
+	r.rowy=add(add(mult(vx.y,a),mult(vy.y,b)),subtract(y,add(mult(vx.y,vx),mult(vy.y,vy))));
+	r.rowz=add(add(mult(vx.z,a),mult(vy.z,b)),subtract(z,add(mult(vx.z,vx),mult(vy.z,vy))));
+	r.roww=add(add(mult(vx.w,a),mult(vy.w,b)),subtract(w,add(mult(vx.w,vx),mult(vy.w,vy))));
+	
+	//check... should get v1 if apply r and trans to v0
+	//printpoint(v0);
+	//printpoint(transformpt(r,maketrans(v0,v1,r),v0));
+	//printpoint(v1);
+	return r;
+}
+function mult(k,p)
+{
+	var r={};
+	r.x=k*p.x;
+	r.y=k*p.y;
+	r.z=k*p.z;
+	r.w=k*p.w;
+	return r;
+}
+
+
+
+function transformviewer(m, trans,v)
+{
+	
+	v.vp=transformpt(m,trans,v.vp);
+	v.nw=transformpt(m,trans,v.nw);
+	v.ne=transformpt(m,trans,v.ne);
+	v.se=transformpt(m,trans,v.se);
+	v.sw=transformpt(m,trans,v.sw);
+}
+function apply(m, p)
+{
+	var newp={};
+	newp.x=dot(m.rowx,p);
+	newp.y=dot(m.rowy,p);
+	newp.z=dot(m.rowz,p);
+	newp.w=dot(m.roww,p);
+	return newp;
+}
+function transformpt(m, trans, p)
+{
+	return add(apply(m,p),trans);
+	
+}
+function norm(v)
+{
+	return Math.sqrt(dot(v,v));
+}
+function dot(p1, p2)
+{
+	return p1.x*p2.x+p1.y*p2.y+p1.z*p2.z+p1.w*p2.w;
+}
+
+
+function subtract(p1, p2)
+{
+	var res={};
+	res.x=p1.x-p2.x;
+	res.y=p1.y-p2.y;
+	res.z=p1.z-p2.z;
+	res.w=p1.w-p2.w;
+	return res;
+}
+function add(p1, p2)
+{
+	var res={};
+	res.x=p1.x+p2.x;
+	res.y=p1.y+p2.y;
+	res.z=p1.z+p2.z;
+	res.w=p1.w+p2.w;
+	return res;
+}	
+function point(x,y,z,w)
+{
+	var p={};
+	p.x=x;p.y=y;p.z=z;p.w=w;
+	return p;
+}
+var oldd=0; //global with meaningless init
+var color;//global
+function draw()
+{
+	setScene(scene);
+	var deltaX=mult(1.0/SIDE,subtract(v.ne,v.nw));
+	//console.log(deltaX);
+	var deltaY=mult(1.0/SIDE,subtract(v.sw,v.nw));
+	//console.log(deltaY);
+	//console.log(dot(deltaX,deltaY));
+	var imgPoint=v.nw;
+	var imgPointL;
+	for(var y=0;y<SIDE;y++)
+	{
+		imgPointL=imgPoint;
+		for(var x=0;x<SIDE;x++)
+		{
+			//putpixel(x,y,[0,255,255]); //debug
+			putpixel(x,y,cast(v.vp,imgPoint));
+			imgPoint=add(imgPoint,deltaX);
+		}
+		imgPoint=add(imgPointL,deltaY);
+	}
+	frame();
+	ctx.putImageData(imgData,0,0);
+}
+var setScene=function(scene)
+{
+	switch(scene)
+			{
+				case "0": inshape=inshape0;return;
+				case "1": inshape=inshape1;return;
+				case "2": inshape=inshape2;return;
+				case "3": inshape=inshape3;return;
+				case "4": inshape=inshape4;return;
+				case "5": inshape=inshape5;return;
+				case "6": inshape=inshape6;return;
+				case "7": inshape=inshape7;return;
+				default:alert("invalid scene");
+			}
+}
+	
+function frame()
+{
+	for(var y=0;y<SIDE;y++)
+	{
+		putpixel(0,y,[0,0,0]); 
+		putpixel(SIDE-1,y,[0,0,0]);
+	}
+	for(var x=0;x<SIDE;x++)
+	{
+		putpixel(x,0,[0,0,0]); 
+		putpixel(x,SIDE-1,[0,0,0]);
+	}
+}
+function putpixel(x,y,c)
+{
+	var i=4*(y*SIDE+x);
+	imgData.data[i]=c[0];
+	imgData.data[i+1]=c[1];
+	imgData.data[i+2]=c[2];
+}
+	
+
+
+//handling color and distance
+//cast needs to set oldd and return color
+//inshape returns bool and sets color
+//darken does shading based on distance //not working now
+//wcolor changes color based on w coord //not working now
+//use global for oldd
+//use global for color
+function cast(vp, sp) //global oldd gets modified
+{
+	var p;
+	var hitcolor;
+	//console.log(vp);
+	//console.log(sp);
+	//alert("check points");
+	for(var lambda=0.0;lambda<MAXLAMBDA;lambda+=JUMP)
+	{
+		var p=mix(vp,sp,lambda);
+		if(inshape(p))
+		{
+			if(lambda<oldd)
+			{
+				color=darken(color);
+			}
+			oldd=lambda;
+			
+			color=wcolor(p,color);//shade for w
+			return color;
+		}
+	}
+	return [255,255,255];
+}
+
+function darken(c)
+{
+	//to shade points that are farther away along ray
+	return [.6*c[0],.6*c[1],.6*c[2]];
+}
+function wcolor(p, c) 
+{
+	//vary color according to w coord
+	var fog=5*p.w;
+	
+	return [c[0]+fog,c[1]+fog,c[2]+fog]
+	//return COLOR(RED_VALUE(color),(p.w+5.0)*25.5,BLUE_VALUE(color));
+}
+function mix(p1,p2, lambda)
+{
+	var p=new Object;
+	p.x=mix0(p1.x,p2.x,lambda);
+	p.y=mix0(p1.y,p2.y,lambda);
+	p.z=mix0(p1.z,p2.z,lambda);
+	p.w=mix0(p1.w,p2.w,lambda);
+	return p;
+}
+function mix0(c1,c2, lambda)
+{
+	return (1.0-lambda)*c1+lambda*c2;
+}
+
+function prompt_for_scene()
+{
+	return prompt("scene (0-7)");
+}
+
+	
+//these all modify global color
+function inshape7(p) //solid red for test
+{
+	color=[255,0,0];
+	return true;
+}
+function inshape0(p)//block w growing hole
+{
+	//console.log("in shape 0");
+	if((-(p.w/4.0+1.0)<p.x)&&(p.x<(p.w/4.0+1.0))&&(-(p.w/4.0+1.0)<p.y)&&(p.y<(p.w/4.0+1.0))&&(-2.0<p.z)&&(p.z<2.0)&&(-4.0<p.w)&&(p.w<4.0))
+		return false;
+	if((-2.0<p.x)&&(p.x<2.0)&&(-2.0<p.y)&&(p.y<2.0)&&(-2.0<p.z)&&(p.z<2.0)&&(-4.0<p.w)&&(p.w<4.0))
+	{
+		color=[255,0,0];
+		return true;
+	}
+	return false;
+
+}
+
+
+function inshape1(p)
+{
+	//4D rectangular solid
+	if((-1.0<p.x)&&(p.x<1.0)&&(-0.5<p.y)&&(p.y<0.5)&&(-1.5<p.z)&&(p.z<1.5)&&(-2.0<p.w)&&(p.w<2.0))
+	{
+		color=[255,0,0];
+		return true;
+	}
+	return false;
+
+}
+
+function inshape2(p)//overall shape centered on x=z=0
+{
+	//4D "wedges"
+	if((p.w>=0)&&(p.w<5)&&(-2.0<p.x)&&(p.x<-1.0)&&(-1.0<p.z)&&(p.z<1.0)&&(0.0<=p.y)&&(p.y<(p.w+0.1)))
+	{
+		color=[255,0,0];
+		return true;
+	}
+	if((p.w>=0)&&(p.w<5)&&(1.0<p.x)&&(p.x<2.0)&&(-1.0<p.z)&&(p.z<1.0)&&(0.0<=p.y)&&(p.y<(3.0-p.w)))
+	{
+		color=[255,0,255];
+		return true;
+	}
+	return false;
+}
+
+
+function inshape3(p)
+{
+	//4D solid with differently colored slab on front
+	if((-1.0<p.x)&&(p.x<1.0)&&(-0.5<p.y)&&(p.y<0.5)&&(-2.0<p.z)&&(p.z<2.0)&&(-2.0<p.w)&&(p.w<2.0))
+	{
+		color=[255,0,0];
+		return true;
+	}
+	if((-1.0<p.x)&&(p.x<1.0)&&(-0.5<p.y)&&(p.y<0.5)&&(2.0<p.z)&&(p.z<2.5)&&(-2.0<p.w)&&(p.w<2.0))
+	{
+		color=[0,0,255];
+		return true;
+	}
+	return false;
+}
+
+
+function inshape4(p)
+{
+	//4D solid with differently colored center
+	if((-0.5<p.x)&&(p.x<0.5)&&(-0.5<p.y)&&(p.y<0.5)&&(-0.5<p.z)&&(p.z<-0.5)&&(-4.0<p.w)&&(p.w<4.0))
+	{
+		color=[0,0,255];
+		return true;
+	}
+	if((-1.0<p.x)&&(p.x<1.0)&&(-1.0<p.y)&&(p.y<1.0)&&(-1.0<p.z)&&(p.z<1.0)&&(-4.0<p.w)&&(p.w<4.0))
+	{
+		color=[255,0,0];
+		return true;
+	}
+	
+	return false;
+}
+function inshape5(p)
+{
+	//block with periodically varying hole
+	var hw=0.75*Math.sin(0.5*p.w)+1.0;//halfwidth
+	if(p.y<-2.0) //ground
+	{
+		color=[0,0,255];
+		return true; 
+	}
+	if((-hw<p.x)&&(p.x<hw)&&(-hw<p.y)&&(p.y<hw))
+		return false;
+	if((-2.0<p.x)&&(p.x<2.0)&&(-2.0<p.y)&&(p.y<2.0)&&(-2.0<p.z)&&(p.z<2.0))
+	{
+		color=[255,0,0];
+		return true;
+	}
+	return false;
+
+}
+function inshape6(p)
+{
+	//two overlapping volcanos that grow and erode
+	var vx1=-0.5; var vz1=0.0;
+	var vx2=0.5;var vz2=-1.0;
+	var t=0.5*p.w;
+	var h1;
+	var h2;
+	if(t<0.0) 
+	{
+		h1=0.0;
+	}
+	else if (t<3.0) //1.0
+	{
+		h1=.5*t;  //h1=t;
+	}
+	else if(t<10.0) //3.0
+	{
+		h1=-0.2*(t-3.0)+1.5;  //h1=-0.5*t+1.5;
+	}
+	else h1=0.0;
+	if(t<4.0) //1.0
+	{
+		h2=0.0;
+	}
+	else if(t<10.0) //2.0
+	{
+		h2=.3*(t-4.0);
+	}
+	else if(t<20.0) //4.0
+	{
+		h2=1.8-.2*(t-10.0);
+	}
+	else h2=0.0;
+	if(p.y<0.0) //ground
+	{
+		color=[0,255,0];
+		return true; 
+	}
+	if((p.y<h1)&&Math.sqrt((p.x-vx1)*(p.x-vx1)+(p.z-vz1)*(p.z-vz1))<(h1-p.y))
+	{
+		color=[255,0,0];
+		return true;
+	}
+	if((p.y<h2)&&Math.sqrt((p.x-vx2)*(p.x-vx2)+(p.z-vz2)*(p.z-vz2))<(h2-p.y))
+	{
+		color=[128,0,0];
+		return true;
+	}
+	return false;
+
+}
+
+	
+
+</script>  
+<style>
+div
+{
+	float:right;
+}
+</style>
+</head>
+ 
+<canvas id="canvas" width="150" height="150">  
+</canvas>
+
+<div>
+<h3>Commands:</h3>
+<input type="button" value="run" onClick="run();">
+<ul>
+<li>Keyboard commands move a rover around a 4D space...
+<li>... you see the view from the rover.
+<li>Use a-z, s-x, d-c, f-v to move around in x y z w...
+<li>...the rover will rotate to face the center of the space.
+<li>Use t-g, y-h, u-j, i-k to translate in x y z w...
+<li>... the rover will not rotate.
+<li>Use p to print current viewer coordinates.
+<li>Use r for reset to the initial view of the scene.
+<li>Press w to see onto the yw plane along the x axis.
+<li>Press e to see onto the yw plane along the z axis.
+<li>Press o to see onto the xz plane along the y axis.
+<li>If you think of w as time, translating along w (i-k keys) moves back and forth in time.
+</ul>
+</div>
+<div>
+<h3>Scenes:</h3>
+<ul>
+<li>0: block w growing hole
+<li>1: 4D rectangular solid 2x1x3x4
+<li>2: 4D 'wedges': pink shrinks with w and orange grows
+<li>3: orange 4D block with blue slab on front
+<li>4: orange 4D block with blue center
+<li>5: block with periodically varying hole
+<li>6: landscape with volcanos
+<li>7: solid red (for testing)
+</ul>
+</div>
+
+<script type="application/javascript">
+
+	
+
+	delta=1.0;
+	setUpCanvas();
+	frame();
+	ctx.putImageData(imgData,0,0);
+
+</script>
+
+
+
+
+</body>
+</html>
+
+
+
+
+	
