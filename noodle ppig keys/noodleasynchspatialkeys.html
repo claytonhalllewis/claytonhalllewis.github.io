@@ -25,6 +25,7 @@ var fb = new Firebase('https://popping-fire-7258.firebaseio.com/');
 function save()
 {
       var dictNewStart=headings[headings.length-1].start;
+      console.log("dictNewStart is "+dictNewStart);
       var dictNew=buildNew(dict,dictNewStart);
       fb.set(dictNew);
 }
@@ -40,6 +41,7 @@ function buildNew(dict,dictNewStart)
 			dictPos=dictPos+1;
 		}
 	}
+	console.log(dictNew);
 	return dictNew;
 }
 function load()
@@ -68,7 +70,7 @@ var speakfn=function(s)
 <div id="keydiv">
 
 <canvas id="theCanvasID" width="150" height="150">  </canvas>
-<input type="button" value="save" onClick="save();">
+<input type="button" value="Save" onClick="save();">
 <input type="button" value="load" onClick="load();">
 <input type="text" value="output" id="outputBox">
 <div id="palette_container"></div>
