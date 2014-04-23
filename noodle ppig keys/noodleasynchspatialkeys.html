@@ -35,6 +35,7 @@ function buildNew(dict,dictNewStart)
 	var dictNew={};
 	for(var sel in dict)
 	{ 
+		console.log("dictPos is "+dictPos);
 		if (dictPos>=dictNewStart)
 		{
 			dictNew[sel]=dict[sel];
