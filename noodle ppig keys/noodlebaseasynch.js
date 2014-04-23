@@ -202,7 +202,7 @@ var concat=function(arg)
         }
         result= newList.concat(arg.list1In);
     }
-    console.log("concat list0In: "+arg.list0In+" list1In: "+arg.list1In+" result: "+result);
+    //console.log("concat list0In: "+arg.list0In+" list1In: "+arg.list1In+" result: "+result);
     return result;
 }
 //"add":{"type":"prim","function":add,"sig":{"out":["sum"],"in":["n0","n1"]}},
@@ -230,7 +230,7 @@ var inputPromptContinue=function(arg)
 }
 var inputOneShot=function(arg)
 {
-	console.log(arg);
+	//console.log(arg);
 	if (arg.node.extras.status=="fresh")
 	{
 		utter(arg.node.extras.name);
@@ -243,7 +243,7 @@ var inputOneShot=function(arg)
 }
 var inputOneShotContinue=function(arg)
 {
-	console.log(arg);
+	//console.log(arg);
 		
 	//console.log("setting avail of "+arg.node.out.value+" to "+true);
 	arg.env[arg.node.out.listIn].value=eval(prompt(arg.node.extras.name));
@@ -314,7 +314,7 @@ var evalPrim=function(node,callingEnv)
 		//console.log("eval of "+node.functionName+" sets avail of "+node.out[sel]+" to "+diff);
 		callingEnv[node.out[sel]].value=value; //##redundant if no change
         //console.log(node.functionName+" produces "+value);
-        console.log("now value in callingEnv is "+callingEnv[node.out[sel]].value);
+        //console.log("now value in callingEnv is "+callingEnv[node.out[sel]].value);
 		callingEnv[node.out[sel]].available=true;
         
 
@@ -344,10 +344,10 @@ var makeArg=function(node,callingEnv)
 {
 	var arg={};
 	var sel;
-    console.log("args for "+node.functionName);
+    //console.log("args for "+node.functionName);
 	for (sel in node.in)
 	{
-        console.log(node.in[sel]);
+        //console.log(node.in[sel]);
 		arg[sel]=callingEnv[node.in[sel]].value;
 	}
 	return arg;
@@ -421,8 +421,8 @@ var reverseTestDef=[	{"functionName":"outputBox",
 var evalDef=function(node,callingEnv)
 {
 	console.log("start evalDef "+node.functionName);
-    console.log("at entry to "+node.functionName+" env is ");
-    console.log(callingEnv);
+    //console.log("at entry to "+node.functionName+" env is ");
+    //console.log(callingEnv);
     //alert();
 	var def=dict[node.functionName].def;
 	//console.log("evaluating def for: "+node.functionName);
@@ -510,8 +510,8 @@ var evalDefLoop=function(start,def,newEnv,node,callingEnv)
 	}
 	console.log("............quiescent3");
 
-    	console.log("at exit from "+node.functionName+" env is ");
-    	console.log(callingEnv);
+    	//console.log("at exit from "+node.functionName+" env is ");
+    	//console.log(callingEnv);
 
 
 	if ((node.extras)&&(node.extras.level))
@@ -650,9 +650,9 @@ var addNodeNames=function(newEnv,def)
 
 var ready=function(node,env)
 {	
-	console.log("checking ready for "+node.functionName);
-	console.log("inputs avail is "+inputsAvail(node,env));
-	console.log("outputs not avail is "+outputsNotAvail(node,env));
+	//console.log("checking ready for "+node.functionName);
+	//console.log("inputs avail is "+inputsAvail(node,env));
+	//console.log("outputs not avail is "+outputsNotAvail(node,env));
 	//return inputsAvail(node,env);
 	return (inputsAvail(node,env)&&outputsNotAvail(node,env));
 }
