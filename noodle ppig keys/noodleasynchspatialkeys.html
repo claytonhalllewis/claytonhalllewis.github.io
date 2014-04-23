@@ -47,11 +47,12 @@ function buildNew(dict,dictNewStart)
 }
 function load()
 {
-      var dictNew;
+   
       
       fb.once('value',
-      function(snapshot){dictNew=snapshot.val();
+      function(snapshot){var dictNew; dictNew=snapshot.val();
                          var dictNewCount=0;
+			 console.log(dictNew);
                          for(var sel in dictNew)
                          {
 		            dict[sel]=dictNew[sel];
