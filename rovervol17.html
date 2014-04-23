@@ -310,7 +310,7 @@ function makematrix(v0,v1)
 	var d=norm(v0);
 	if(d==0) 
 	{
-		alert("zero divide");
+		//alert("zero divide");
 		return identity();
 	}
 	var vx=mult(1.0/d,v0);
@@ -318,7 +318,7 @@ function makematrix(v0,v1)
 	d=norm(tv);
 	if(d==0) 
 	{
-		alert("zero divide");
+		//alert("zero divide");
 		return identity();
 	}
 	var vy=mult(1.0/d,tv);
