@@ -988,6 +988,7 @@ var drawFromIntermediateRep=function(workspace)
     }
     
 }
+alert("yoo hoo");
  var buildPaletteFromDict=function()
     {
         var intermediateRep={"blocks":{}};
