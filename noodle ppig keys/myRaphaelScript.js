@@ -77,7 +77,7 @@ window.onload = function() {
         //paletteField.attr("fill", FieldColor);
         workspace.nBlocks=0;
         workspace.x=paletteX;
-    workspace.intermediateRep=buildPaletteFromDict();
+    workspace.intermediateRep=palette.buildPaletteFromDict();
     workspace.updatePalette=function(intermediateRep)
     {
         workspace.intermediateRep=intermediateRep;
