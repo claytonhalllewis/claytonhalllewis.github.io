@@ -84,6 +84,24 @@ window.onload = function() {
         //workspace.clear(); ##have to do something here besides graphics??
         //workspace.draw(); 
     }
+workspace.buildPaletteFromDict=function()
+    {
+        var intermediateRep={"blocks":{}};
+        var nBlocks=0;
+        for (var f in dict)
+        {
+            //console.log("fn is "+f);
+            var def=dict[f];
+            intermediateRep.blocks[nBlocks]={"functionName":f,"in":inSigFromDef(def),"out":outSigFromDef(def),"next":nBlocks+1};
+            nBlocks=nBlocks+1;
+        }
+        intermediateRep.blocks[nBlocks-1].next=null;
+        //console.log("palette");
+        //console.log(intermediateRep);
+        return intermediateRep;
+    }
+
+
     //"reverse":{"type":"def","def":defReverse,"sig":{"out":["listOut"],"in":["listIn"]}},
         workspace.draw=function()
         {
@@ -212,7 +230,7 @@ window.onload = function() {
             updateDictionary(workspace.name,dictionaryEntryFromIntermediateRep(workspace.intermediateRep));
             console.log("saved dict: ");
             console.log(dict);
-            palette.updatePalette(buildPaletteFromDict());
+            palette.updatePalette(palette.buildPaletteFromDict());
         
         }
 
@@ -988,24 +1006,8 @@ var drawFromIntermediateRep=function(workspace)
     }
     
 }
-alert("yoo hoo");
- var buildPaletteFromDict=function()
-    {
-        var intermediateRep={"blocks":{}};
-        var nBlocks=0;
-        for (var f in dict)
-        {
-            //console.log("fn is "+f);
-            var def=dict[f];
-            intermediateRep.blocks[nBlocks]={"functionName":f,"in":inSigFromDef(def),"out":outSigFromDef(def),"next":nBlocks+1};
-            nBlocks=nBlocks+1;
-        }
-        intermediateRep.blocks[nBlocks-1].next=null;
-        //console.log("palette");
-        //console.log(intermediateRep);
-        return intermediateRep;
-    }
-    var inSigFromDef=function(def)
+
+     var inSigFromDef=function(def)
     {
         var inSig={};
         for (var conn in def.sig.in)

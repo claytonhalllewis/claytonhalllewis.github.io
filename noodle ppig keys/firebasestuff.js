@@ -35,7 +35,7 @@ function load()
 		            dictNewCount=dictNewCount+1;
                          }
                          headings[headings.length-1]["length"]=dictNewCount;
-			 palette.updatePalette(buildPaletteFromDict());
+			 palette.updatePalette(palette.buildPaletteFromDict());
                          }
 			
       );
