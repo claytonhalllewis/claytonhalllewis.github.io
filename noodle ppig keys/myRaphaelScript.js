@@ -77,7 +77,7 @@ window.onload = function() {
         //paletteField.attr("fill", FieldColor);
         workspace.nBlocks=0;
         workspace.x=paletteX;
-    workspace.intermediateRep=workspace.buildPaletteFromDict();
+    
     workspace.updatePalette=function(intermediateRep)
     {
         workspace.intermediateRep=intermediateRep;
@@ -100,7 +100,7 @@ workspace.buildPaletteFromDict=function()
         //console.log(intermediateRep);
         return intermediateRep;
     }
-
+	workspace.intermediateRep=workspace.buildPaletteFromDict();
 
     //"reverse":{"type":"def","def":defReverse,"sig":{"out":["listOut"],"in":["listIn"]}},
         workspace.draw=function()
