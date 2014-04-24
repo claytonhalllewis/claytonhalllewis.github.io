@@ -11,10 +11,11 @@ function buildNew(dict,dictNewStart)
 	var dictNew={};
 	for(var sel in dict)
 	{ 
-		console.log("dictPos is "+dictPos);
+		//console.log("dictPos is "+dictPos);
 		if (dictPos>=dictNewStart)
 		{
 			dictNew[sel]=dict[sel];
+			console.log(dict[sel]);
 		}
 		dictPos=dictPos+1;
 	}
@@ -32,6 +33,8 @@ function load()
                          for(var sel in dictNew)
                          {
 		            dict[sel]=dictNew[sel];
+			    if (!dict[sel].hasOwnProperty("sig"))
+				dict[sel]["sig"]={"out":[],"in":[]};
 		            dictNewCount=dictNewCount+1;
                          }
                          headings[headings.length-1]["length"]=dictNewCount;
