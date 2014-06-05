@@ -9,10 +9,49 @@
         }  
 	#workspace_container_container,#palette_container
 	{
+	display:none;
 	float:left;
 	}
+	#textbox
+	{
+	font-size:36;
+	width:100%;
+	}
+	.button 
+	{
+    		background-color: #0FFF0F;
+    		color: #000000;
+    		float: left;
+    		padding: 10px;
+    		border-radius: 10px;
+    		-moz-border-radius: 10px;
+    		-webkit-border-radius: 10px;
+		font-size:36;
+	}
+
+	.small-btn 
+	{
+    		width: 15%;
+    		height: 20%;
+	}
+	.big-btn 
+	{
+	    	width: 33%;
+    		height: 20%;
+	}
+	.hidden
+	{
+		visibility:hidden;
+	}
+	.text_line
+	{
+		clear:both;
+		margin-bottom:2px;
+	}
+
 
 </style>
+
 <script src="speakWorker.js"></script>
 <script src="speakClient.js"></script>
 
@@ -32,15 +71,27 @@ var speakfn=function(s)
 <canvas id="theCanvasID" width="150" height="150">  </canvas>
 <div id="palette_container"></div>
 <div id="workspace_container_container"></div>
-<button type="button" onclick="buttonR()">R</button>
-<button type="button" onclick="buttonL()">L</button>
-<button type="button" onclick="buttonU()">U</button>
-<button type="button" onclick="buttonD()">D</button>
-<button type="button" onclick="buttonS()">S</button>
-<button type="button" onclick="buttonNew()">new</button>
-<button type="button" onclick="buttonDelete()">delete</button>
-<button type="button" onclick="buttonRun()">run</button>
-<button type="button" onclick="buttonUndo()">undo</button>
+</div>
+<h3 class="text_line"></h3>
+<button class="button small-btn" onclick="buttonNew()">new</button>
+<h3 class="text_line"></h3>
+<button class="button big-btn hidden" >dummy</button>
+<button class="button big-btn" onclick="buttonU()">U</button>
+<button class="button big-btn hidden" >dummy</button>
+<h3 class="text_line"></h3>
+<button class="button big-btn" onclick="buttonL()">L</button>
+<button class="button big-btn" onclick="buttonS()">S</button>
+<button class="button big-btn" onclick="buttonR()">R</button>
+<h3 class="text_line"></h3>
+<button class="button big-btn hidden" >dummy</button>
+<button class="button big-btn" onclick="buttonD()">D</button>
+<button class="button big-btn hidden" >dummy</button>
+<h3 class="text_line"></h3>
+<button class="button small-btn" onclick="buttonRun()">run</button>
+<button class="button small-btn" onclick="buttonDelete()">delete</button>
+<h3 class="text_line"></h3>
+<textarea id="textbox" type="text" value="output goes here"></textarea>
+
 </div>
 
 
