@@ -1,0 +1,110 @@
+<html>
+<head>
+<title>Noodle</title>
+<style type="text/css">  
+      	#canvas_container 
+	{  
+      	width: 500px;  
+      	border: 1px solid #aaa;  
+        }  
+	#workspace_container_container,#palette_container
+	{
+	display:none;
+	float:left;
+	}
+	#outputBox
+	{
+	font-size:4em;
+	width:100%;
+	}
+	.button 
+	{
+    		background-color: #0FFF0F;
+    		color: #000000;
+    		float: left;
+    		padding: 10px;
+    		border-radius: 10px;
+    		-moz-border-radius: 10px;
+    		-webkit-border-radius: 10px;
+		font-size: 4em;
+	}
+
+	.small-btn 
+	{
+    		width: 20%;
+    		height: 20%;
+	}
+	.big-btn 
+	{
+	    	width: 33%;
+    		height: 20%;
+	}
+	.hidden
+	{
+		visibility:hidden;
+	}
+	.text_line
+	{
+		clear:both;
+		margin-bottom:2px;
+	}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+<script>
+var speakfn=function(s)
+{
+        var msg = new SpeechSynthesisUtterance(s);
+	window.speechSynthesis.speak(msg);
+
+}
+//alert("ready");
+//speakfn("eureka");
+</script>
+<div>
+<canvas id="theCanvasID" width="150" height="150">  </canvas>
+<div id="palette_container"></div>
+<div id="workspace_container_container"></div>
+</div>
+<h3 class="text_line"></h3>
+<button class="button small-btn" onclick="buttonNew()">new</button>
+<h3 class="text_line"></h3>
+<button class="button big-btn hidden" >dummy</button>
+<button class="button big-btn" onclick="buttonU()">U</button>
+<button class="button big-btn hidden" >dummy</button>
+<h3 class="text_line"></h3>
+<button class="button big-btn" onclick="buttonL()">L</button>
+<button class="button big-btn" onclick="buttonS()">S</button>
+<button class="button big-btn" onclick="buttonR()">R</button>
+<h3 class="text_line"></h3>
+<button class="button big-btn hidden" >dummy</button>
+<button class="button big-btn" onclick="buttonD()">D</button>
+<button class="button big-btn hidden" >dummy</button>
+<h3 class="text_line"></h3>
+<button class="button small-btn" onclick="buttonRun()">run</button>
+<button class="button small-btn" onclick="buttonDelete()">delete</button>
+<h3 class="text_line"></h3>
+<textarea id="outputBox" type="text" value="output goes here"></textarea>
+
+</div>
+
+
+<script src="nonvisualspatialized.js"></script>
+<script src="noodlesound.js"></script>
+<script src="colorsetc.js"></script>
+<script src="noodleshapes.js"></script>
+<script src="noodlebaseasynch.js"></script>
+<script type="text/javascript" src="raphael-min.js"></script>  
+<script type="text/javascript" src="myRaphaelScript.js"></script>  
+<script src="firebasestuff.js"></script>
+
+  
+      
+</body>
+</html>
