@@ -428,7 +428,7 @@ var addWorkspace=function(ws)
 var utter=function(s)
 {
     console.log("saying:"+s);
-    if(!speakWorker)
+    if(typeof speakWorker !=='undefined')
 	return;
     speakfn(s); //put in for firefox
 }
