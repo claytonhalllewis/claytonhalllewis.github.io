@@ -22,6 +22,7 @@
 var fb = new Firebase('https://popping-fire-7258.firebaseio.com/');
 var speakfn=function(s)
 {
+	window.speechSynthesis.cancel();
         var msg = new SpeechSynthesisUtterance(s);
 	window.speechSynthesis.speak(msg);
 
