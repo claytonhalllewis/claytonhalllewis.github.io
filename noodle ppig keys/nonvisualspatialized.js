@@ -428,8 +428,9 @@ var addWorkspace=function(ws)
 var utter=function(s)
 {
     console.log("saying:"+s);
-    if(speakWorker)
-       speakfn(s); //put in for firefox
+    if(!speakWorker)
+	return;
+    speakfn(s); //put in for firefox
 }
 var noodlePrompt=function(label)
 {
