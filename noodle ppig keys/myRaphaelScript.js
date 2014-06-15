@@ -220,7 +220,7 @@ workspace.buildPaletteFromDict=function()
         workspace.save=function()
         {
             console.log('saving');
-	    utter("saving "+ workspace.name);
+	    //utter("saving "+ workspace.name);
 	    if(nameIsNew(workspace.name))
 	    {
 		console.log("new name");
