@@ -1,0 +1,54 @@
+<html>
+<head>
+<title>Noodle</title>
+<style type="text/css">  
+      	#canvas_container 
+	{  
+      	width: 500px;  
+      	border: 1px solid #aaa;  
+        }  
+	#workspace_container_container,#palette_container
+	{
+	float:left;
+	}
+
+</style>
+<script src="speakWorker.js"></script>
+<script src="speakClient.js"></script>
+<script src='https://cdn.firebase.com/js/client/1.0.11/firebase.js'></script>
+</head>
+
+<body>
+<div id="audio"></div>
+<script>
+var fb = new Firebase('https://popping-fire-7258.firebaseio.com/');
+var speakfn=function(s)
+    {
+        speak(s);
+}
+//alert("ready");
+//speakfn("eureka");
+</script>
+<div id="keydiv">
+
+<canvas id="theCanvasID" width="150" height="150">  </canvas>
+<input type="button" value="Save" onClick="save();">
+<input type="button" value="Load" onClick="load();">
+<input type="text" value="output" id="outputBox">
+<div id="palette_container"></div>
+<div id="workspace_container_container"></div>
+</div>
+
+<script src="nonvisualspatialized.js"></script>
+<script src="noodlesound.js"></script>
+<script src="colorsetc.js"></script>
+<script src="noodleshapes.js"></script>
+<script src="noodlebaseasynch.js"></script>
+<script type="text/javascript" src="raphael-min.js"></script>  
+<script type="text/javascript" src="myRaphaelScript.js"></script>  
+<script src="firebasestuff.js"></script>
+
+  
+      
+</body>
+</html>
