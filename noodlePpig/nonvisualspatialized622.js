@@ -623,6 +623,7 @@ var selectBlock=function(workspace)
         {
             //add in entry to externalOut block
             var connectorName=window.prompt("enter connector name: ");
+	    var ws=workspace;
             utter("adding edge from connector "+ws.selectedConnectors.from.name+" on block "+ws.intermediateRep.blocks[ws.selectedConnectors.from.blockSelector]+" to connector "+connectorName+" on block "+ws.intermediateRep.blocks[blockSelector].functionName);
             workspace.intermediateRep.blocks[blockSelector].in[connectorName]={};
             workspace.placeEdge({"to":{"name":connectorName,"blockSelector":blockSelector},
