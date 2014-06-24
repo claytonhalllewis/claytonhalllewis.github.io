@@ -601,6 +601,7 @@ var selectBlock=function(workspace)
         if( workspace.selectedConnectors.to.set)
         {
             //add out entry to externalIn block
+	    var ws=workspace;
             var connectorName=window.prompt("enter connector name: ");
             utter("adding edge from connector "+connectorName+" on block "+ws.intermediateRep.blocks[blockSelector].functionName+" to connector "+ws.selectedConnectors.to.name+" on block "+ws.intermediateRep.blocks[ws.selectedConnectors.to.blockSelector]);
             workspace.intermediateRep.blocks[blockSelector].out[connectorName]={};
