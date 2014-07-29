@@ -231,6 +231,7 @@ workspace.buildPaletteFromDict=function()
             console.log("saved dict: ");
             console.log(dict);
             palette.updatePalette(palette.buildPaletteFromDict());
+	    save(); //put in firebase
         
         }
 
