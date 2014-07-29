@@ -244,7 +244,7 @@ workspace.buildPaletteFromDict=function()
 	    utter("renaming workspace "+newName);
 	    workspace.name=newName;
 updateDictionary(workspace.name,dictionaryEntryFromIntermediateRep(workspace.intermediateRep));},500);
-        
+            save(); //put in firebase
         }
 
 
