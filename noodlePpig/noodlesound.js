@@ -1,4 +1,3 @@
-
 const kSampleRate = 44100; // Other sample rates might not work depending on the your browser's AudioContext
 const kNumSamples = 16834;
 //const kFreq  = 440;
@@ -40,6 +39,7 @@ function play_buffersource() {
     node.connect(ctx.destination);
     node.noteOn(ctx.currentTime + 2.0);
 }
+/*
 //play_buffersource();
 if (!window.AudioContext) 
     {
@@ -50,7 +50,7 @@ if (!window.AudioContext)
         }
         window.AudioContext = window.webkitAudioContext;
     }
-
+*/
 var ctx = new AudioContext();
 function playSound(arg) 
 {
