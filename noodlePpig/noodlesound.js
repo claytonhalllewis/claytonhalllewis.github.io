@@ -77,7 +77,8 @@ function playSound(arg)
     var node = ctx.createBufferSource(0);
     node.buffer = buffer1;
     node.connect(ctx.destination);
-    node.noteOn(ctx.currentTime + 0.5);
+    //node.noteOn(ctx.currentTime + 0.5);
+    note.start();
 }
 var makeTone=function(name)
 {
