@@ -1,0 +1,500 @@
+<html>
+<head> <title>Happy New Year 2015!</title>
+<script type="application/javascript">  
+//define fns and constants
+var SIDE= 500;
+var FRAMEWD=30;
+var HT=30;
+var WD=20;
+var ROWS=Math.floor((SIDE-2*FRAMEWD)/HT);
+//var COLS=Math.floor((SIDE-2*FRAMEWD)/WD)-1;//allow for odd rows to be shifted rt
+var COLS=Math.floor((SIDE-2*FRAMEWD)/WD);
+
+
+var AGE=44;
+var LIGHTEDTIME=40;
+
+var CTX;
+var WHITE="#FFFFFF";
+var GREEN="#00B000";
+var BLUE="#0000B0"
+var RED="#F00000";
+var YELLOW="#FFFF00";
+var ORANGE="#FF9000";
+var colors=[RED,ORANGE,BLUE];
+var numLightedTrees=0;
+var treeGrid=[];
+for (var c=0;c<COLS;c++)
+{
+	treeGrid[c]=[];
+	for (var r=0;r<ROWS;r++)
+		treeGrid[c][r]=false;
+}
+var fillerGrid=[];
+for (var c=0;c<COLS;c++)
+{
+	fillerGrid[c]=[];
+	for (var r=0;r<ROWS;r++)
+		fillerGrid[c][r]=false;
+}
+var lightedGrid=[];
+for (var c=0;c<COLS;c++)
+{
+	lightedGrid[c]=[];
+	for (var r=0;r<ROWS;r++)
+		lightedGrid[c][r]=0;
+}
+
+var running=true;
+var drawFrame=function(color)
+{
+	ctx.fillStyle=color;
+	ctx.fillRect(0,0,SIDE,FRAMEWD);
+	ctx.fillRect(0,FRAMEWD,FRAMEWD,SIDE-FRAMEWD);
+	ctx.fillRect(0,SIDE-FRAMEWD,SIDE,SIDE);
+	ctx.fillRect(SIDE-FRAMEWD,FRAMEWD,SIDE,SIDE-FRAMEWD);
+
+}
+var countTrees=function()
+{
+	num=0;
+	for(var r=0;r<ROWS;r++)
+		for(var c=0;c<COLS;c++)
+			if(treeGrid[c][r])
+				num=num+1;
+	return num;
+}
+var countPartialTrees=function()
+{
+	num=0;
+	for(var r=0;r<ROWS;r++)
+		for(var c=0;c<COLS;c++)
+			if(isBigTree(c,r,3))
+				num=num+1;
+	return num;
+}
+var temperature=function()
+{
+	return .5*countTrees()+20*countPartialTrees()+100*numLightedTrees;
+}
+var blend=function(n1,n2,temp)
+{
+	if (temp>500)
+		temp=500;
+	return Math.floor((temp*n2+(500-temp)*n1)/500);
+}
+var padHex=function(hexStr)
+{
+	if (hexStr.length<2)
+		hexStr="0"+hexStr;
+	return hexStr;
+}
+var colorTemp=function(temp)
+{
+//Convert a number to a hexadecimal string with:
+//hexString = yourNumber.toString(16);
+//and reverse the process with:
+//yourNumber = parseInt(hexString, 16);
+	var rC2=parseInt(RED.substr(1,2), 16);
+	//console.log("<"+RED.substr(1,2)+">");
+	//console.log(rOrange);
+	var gC2=parseInt(RED.substr(3,2), 16);
+	var bC2=parseInt(RED.substr(5,2), 16);
+	var rBlue=parseInt(BLUE.substr(1,2), 16);
+	//console.log(rBlue);
+	var gBlue=parseInt(BLUE.substr(3,2), 16);
+	var bBlue=parseInt(BLUE.substr(5,2), 16);
+	var rCnum=blend(rBlue,rC2,temp);
+	//console.log(rCnum);
+	var gCnum=blend(gBlue,gC2,temp);
+	var bCnum=blend(bBlue,bC2,temp);	
+	var rStr=rCnum.toString(16);
+	//console.log("<"+rStr+">");
+	var gStr=gCnum.toString(16);
+	var bStr=bCnum.toString(16);
+	
+	return "#"+padHex(rStr)+padHex(gStr)+padHex(bStr);
+}
+	
+var oddRowAdj=function(row) //shift odd rows over)
+{
+	if ((row%2)==1)
+		return WD*.5;
+	return 0;
+}
+var drawWhiteTree = function(col,row)
+{
+	ctx.fillStyle=WHITE;
+	ctx.strokeStyle=WHITE;
+	ctx.lineWidth=2;
+	ctx.beginPath();
+	var adj=oddRowAdj(row);
+	ctx.moveTo(WD*col+adj+FRAMEWD,HT*row+FRAMEWD);
+	ctx.lineTo(WD*(col+.5)+adj+FRAMEWD,HT*(row-1)+FRAMEWD);
+	ctx.lineTo(WD*(col+1)+adj+FRAMEWD,HT*row+FRAMEWD);
+	ctx.closePath();
+	ctx.stroke();
+	ctx.fill();
+	treeGrid[col][row]=true;
+};
+
+var drawTree = function(color,col,row)
+{
+	ctx.fillStyle=color;
+	ctx.strokeStyle=WHITE;
+	ctx.lineWidth=1;
+	ctx.beginPath();
+	var adj=oddRowAdj(row);
+	ctx.moveTo(WD*col+adj+FRAMEWD,HT*row+FRAMEWD);
+	ctx.lineTo(WD*(col+.5)+adj+FRAMEWD,HT*(row-1)+FRAMEWD);
+	ctx.lineTo(WD*(col+1)+adj+FRAMEWD,HT*row+FRAMEWD);
+	ctx.closePath();
+	ctx.stroke();
+	ctx.fill();
+	treeGrid[col][row]=true;
+};
+var drawWhiteFiller = function(col,row)
+{
+	ctx.fillStyle=WHITE;
+	ctx.strokeStyle=WHITE;
+	ctx.lineWidth=2;
+	ctx.beginPath();
+	var adj=oddRowAdj(row);
+	ctx.moveTo(WD*col+adj+FRAMEWD,HT*row+FRAMEWD);
+	ctx.lineTo(WD*(col-.5)+adj+FRAMEWD,HT*(row-1)+FRAMEWD);
+	ctx.lineTo(WD*(col+.5)+adj+FRAMEWD,HT*(row-1)+FRAMEWD);
+	ctx.closePath();
+	ctx.stroke();
+	ctx.fill();
+	fillerGrid[col][row]=true;
+};
+
+var drawFiller = function(color,col,row)
+{
+	ctx.fillStyle=color;
+	ctx.strokeStyle=WHITE;
+	ctx.lineWidth=1;
+	ctx.beginPath();
+	var adj=oddRowAdj(row);
+	ctx.moveTo(WD*col+adj+FRAMEWD,HT*row+FRAMEWD);
+	ctx.lineTo(WD*(col-.5)+adj+FRAMEWD,HT*(row-1)+FRAMEWD);
+	ctx.lineTo(WD*(col+.5)+adj+FRAMEWD,HT*(row-1)+FRAMEWD);
+	ctx.closePath();
+	ctx.stroke();
+	ctx.fill();
+	fillerGrid[col][row]=true;
+};
+var placeRandomTree=function()
+{
+	if(!running)
+		return;
+	var row=Math.floor(Math.random()*(ROWS)+1);
+	var col=Math.floor(Math.random()*(COLS-1));
+	if (treeGrid[col][row])
+		return;
+	drawTree(GREEN,col,row);
+}
+var isSurroundedBlank=function(col,row)
+{
+	if (col<1)
+		return false;
+	if (row<2)
+		return false;
+	var tip=col;
+	if (row%2==0)
+		tip=col-1
+	if(fillerGrid[col][row])
+		return false;
+	if(!treeGrid[tip][row-1])
+		return false;
+	if(!treeGrid[col][row])
+		return false;
+	if(!treeGrid[col-1][row])
+		return false;
+	return true;
+}
+
+var fillSurroundedBlanks=function()
+{
+	if(!running)
+		return;
+	for(var r=0;r<ROWS;r++)
+		for(var c=0;c<COLS;c++)
+			if(isSurroundedBlank(c,r))
+				drawFiller(GREEN,c,r);
+}
+var randomColor=function()
+{
+	return colors[Math.floor(Math.random()*colors.length)];
+}
+var decrementColumn=function(col,row)
+{
+	if(row%2==0)
+		return col-1;
+	return col;
+}
+
+var lightTree=function(col,row,ht)
+{
+	if(!running)
+		return;
+	if (lightedGrid[col][row]==1)
+	{
+		eraseTree(col,row,ht);
+		numLightedTrees=numLightedTrees-1;
+		lightedGrid[col][row]=0;
+		//eraseRandomArea(8);
+		return;
+	}
+	lightedGrid[col][row]=lightedGrid[col][row]-1;
+	if (lightedGrid[col][row]>LIGHTEDTIME)
+		return;
+	if (lightedGrid[col][row]==LIGHTEDTIME)
+		numLightedTrees=numLightedTrees+1;
+	var tCol=col;
+	for (var level=0;level<ht;level++)
+	{
+		for (var c=0;c<level;c++)
+		{
+			drawTree(randomColor(),tCol+c,row+level);
+			
+			treeGrid[tCol+c][row+level]=false;
+			if (c<level-1)
+			{
+				drawFiller(randomColor,tCol+c+1,row+level);
+				fillerGrid[tCol+c+1][row+level]=false;
+			}
+		}
+		tCol=decrementColumn(tCol,row+level);
+	}
+}
+
+var eraseTree=function(col,row,ht)
+{
+	var tCol=col;
+	for (var level=0;level<ht;level++)
+	{
+		for (var c=0;c<level;c++)
+		{
+			drawWhiteTree(tCol+c,row+level);
+			treeGrid[tCol+c][row+level]=false;
+			if (c<level-1)
+			{
+				drawWhiteFiller(tCol+c+1,row+level);
+				fillerGrid[tCol+c+1][row+level]=false;
+			}
+		}
+		tCol=decrementColumn(tCol,row+level);
+	}
+}
+
+var eraseRandomArea=function(s)
+{
+	if(!running)
+		return;
+	var col=Math.floor(Math.random()*(COLS-1)+1);
+	var row=Math.floor(Math.random()*(ROWS-1))+1;
+	for(var c=0;c<s;c++)
+		for(var r=0;r<s;r++)
+		{
+			thisC=col+c;
+			thisR=row+r;
+			if ((thisC<(COLS-1))&&(thisR<ROWS))
+			{
+				drawWhiteTree(thisC,thisR);
+				treeGrid[thisC][thisR]=false;
+				drawWhiteFiller(thisC,thisR);
+				fillerGrid[thisC][thisR]=false;
+			}
+		}
+}
+				
+	
+
+isBigTree=function(col,row,ht)
+{
+	if (lightedGrid[col][row]>0)
+		return false;
+	if (col<(ht/2))
+		return false;
+	if (row>(ROWS-ht))
+		return false;
+	if (col>(COLS-(ht/2)))
+		return false;
+	var tCol=col;
+	for (var level=0;level<ht;level++)
+	{
+		for (var c=0;c<level;c++)
+		{
+			//console.log(tCol+c);
+			if (!treeGrid[tCol+c][row+level])
+				return false;
+		}
+		tCol=decrementColumn(tCol,row+level);
+	}
+	return true;
+}
+isIsolatedBigTree=function(col,row,ht)
+{
+	if (col<ht)
+		return false;
+	if (row>(ROWS-ht-1))
+		return false;
+	if (col>(COLS-ht-1))
+		return false;
+	var tCol=col;
+	for (var level=0;level<ht;level++)
+	{
+		if (fillerGrid[tCol][row+level])
+			return false;
+		if (fillerGrid[tCol+level][row+level])
+			return false;
+		tCol=decrementColumn(tCol,row+level);
+	}
+	return true;
+}
+var lightTrees=function(ht)
+{
+	for(var r=0;r<ROWS;r++)
+		for(var c=0;c<COLS;c++)
+			if (isBigTree(c,r,ht)||(lightedGrid[c][r]>0))
+			{
+				if (lightedGrid[c][r]==0)
+				{
+					lightedGrid[c][r]=AGE;
+				}
+				lightTree(c,r,ht);
+				
+			}
+}
+//var happyMsg=function()
+//{
+//	running=false;
+//	setTimeout(function(){happyBanner();},2000);
+//}
+
+var happyMsg=function()
+{
+	drawWhiteTree(0,0);//fixes weird leftover draw
+	ctx.fillStyle=WHITE;
+	ctx.strokeStyle=RED;
+	ctx.rect(60,Math.floor(SIDE/2)-35+140,SIDE-125,55+35);
+	ctx.fill();
+	ctx.stroke();
+	ctx.font="30px Verdana";
+	ctx.fillStyle=RED;
+	ctx.fillText("Happy New Year 2015!",70,Math.floor(SIDE/2)+160);
+	running=false;
+}
+
+var doStep=function()
+{
+	lightTrees(4);
+	console.log(numLightedTrees);
+	if (numLightedTrees>2)
+		happyMsg();
+	drawFrame(colorTemp(temperature()));
+	placeRandomTree();
+	fillSurroundedBlanks();
+	
+	if(Math.random()<.05)
+		eraseRandomArea(8);
+	
+
+}
+var toggleRunning=function()
+{
+	running=!running;
+	if (running)
+		doSteps();
+}
+var doSteps=function()
+{	if(running)
+	{
+		doStep();
+		setTimeout(function(){ doSteps(); }, 250);//250
+	}
+}
+</script>  
+<style>
+div
+{
+	float:right;
+}
+</style>
+</head>
+ 
+<canvas id="canvas" width="500" height="500">  
+</canvas>
+
+
+
+
+<script type="application/javascript">
+//clear canvas
+var canvas = document.getElementById("canvas");  
+ctx = canvas.getContext("2d");
+ctx.clearRect ( 0 , 0 , SIDE, SIDE);
+drawFrame(BLUE);
+doSteps();
+//drawTree(colorTemp(0),4,4);
+//drawTree(colorTemp(400), 6, 6);
+//drawTree(colorTemp(800),8,8);
+
+//drawTree(RED,4,4);
+//drawTree(WHITE,4,4);
+//drawWhiteTree(4,4);
+//lightTree(8,4,4);
+/*
+lightTree(4,4,3);
+lightTree(10,5,4);
+*/
+/*
+drawTree(GREEN,4,4);
+drawTree(GREEN,5,4);
+drawTree(GREEN,4,3);
+if (isSurroundedBlank(5,4))
+	drawFiller(GREEN,5,4);
+if (isSurroundedBlank(5,4))
+	drawFiller(BLUE,5,4);
+
+drawTree(GREEN,4,9);
+drawTree(GREEN,5,9);
+drawTree(GREEN,5,8);
+if (isSurroundedBlank(5,9))
+	drawFiller(GREEN,5,9);
+if (isSurroundedBlank(5,9))
+	drawFiller(BLUE,5,9);
+*/
+/*
+drawTree(RED,4,3);
+drawTree(YELLOW,5,3);
+drawFiller(GREEN,4,4);
+drawFiller(GREEN,6,6);
+drawFiller(BLUE,8,8);
+drawFiller(RED,4,3);
+drawFiller(YELLOW,5,3);
+*/
+/*
+for (var i=0;i<10;i++)
+{
+	placeRandomTree();
+}
+*/
+/*
+ctx.fillRect(0,0,500,500);
+//drawTree(WHITE,4,4);
+eraseTree(3,3,4);
+eraseTree(10,4,5);
+*/
+
+
+</script>
+
+</body>
+</html>
+
+
+
+
+	
