@@ -1,0 +1,32 @@
+<html>
+<head> 
+<title>electric field sonification</title>
+<script src="say.js"></script>
+<script src="cursorPosition.js"></script>
+<script src="computeField.js"></script>
+<script src="sonify.js"></script>
+<script src="maketone.js"></script>
+<script src="spatialUI.js"></script>
+<script src="keyboardHandler.js"></script>
+<script type="text/javascript">
+document.onkeydown=handleKey;
+</script>
+</head>
+<body role="application">
+
+<canvas style="border:1px solid blue" id="myCanvas" width="1" height="1" onmousemove="updateCursor(event);" > </canvas>
+<div id="liveRegion" aria-live="polite">         
+</div>
+<h1>Summary</h1>
+Audio representation of the electric field produced by a moving charge, at the location of a probe controlled by the mouse.
+Use the arrow keys to navigate the available commands, and space to select.
+Press escape to regain control of your cursor.
+<h1>Details</h1>
+<h2>Coding of field attributes</h2>
+The amplitude of the field at the position of the probe is indicated by the loudness of the sound. The orientation is indicated by the pitch of the sound, in one of two ways. In compass coding the orientation of east has the lowest pitch, increasing to north, west, and south, to a highest pitch just south of east, and then jumping down again at east. In Shepard coding the orientation is given using Shepard tones. These seem to get higher as the orientation shifts from east to north to west, and so on, and seem to get lower as the orientation shifts the other way, with no apparent jump at east. While the Shepard tones do a good job of conveying how the orientation is changing, it is difficult to identify the absolute orientation from them.
+<h2>Charge Motion</h2>
+The sim can show four different patterns of motion for a charge located near the origin of the space (coordinates zero comma zero). For stationary the charge does not move. For horizontal the charge moves back and forth along the x axis. For vertical it moves up and down along the y axis. For circular motion it moves in a circle around the origin.
+
+
+</body>
+</html>
