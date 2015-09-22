@@ -1,0 +1,148 @@
+<html>
+<head>
+		<title>NoPumpJ</title>
+		<style type="text/css">
+			.cell
+			{
+				position:absolute;
+			}
+			
+		</style>
+
+
+			
+</head>
+<body onload="setup()" >
+<script language="JavaScript" type="text/javascript">
+<!--
+var wt;
+var a,v,wx,wy;
+var af,vf,wxf,wyf;
+var abox,vbox,wxbox,wybox;
+var aboxf,vfbox,wxfbox,wtfbox,tbox;
+var t=0;
+var oldt=0;
+var values=new Array;
+
+var oldtime;
+var running;
+
+
+function setup()
+{
+	
+	running=false;
+	wt=document.getElementById("w");
+	wxbox=document.getElementById("wx");
+	wxfbox=document.getElementById("wxf");
+	wybox=document.getElementById("wy");
+	wyfbox=document.getElementById("wyf");
+	abox=document.getElementById("a");
+	afbox=document.getElementById("af");
+	vbox=document.getElementById("v");
+	vfbox=document.getElementById("vf");
+	tbox=document.getElementById("t");
+	getvals();
+	
+}
+
+function run()
+{
+	var clock;
+	if(!running)
+	{
+		clock=new Date();
+		oldtime=clock.getTime();	
+		running=true;
+		updatesim();
+	}
+	else running=false;
+}
+function resett()
+{
+	t=0;
+	oldt=0;
+	tbox.value=0;
+	values=new Array;
+	updatesim();
+}
+
+function tint(exp)
+{
+	if(values[exp]==undefined)
+		values[exp]=0;
+	values[exp]+=(t-oldt)*eval(exp);
+	return values[exp];
+}
+
+
+function evaluatecells()
+{
+	a=eval(af);
+	v=eval(vf);
+	wx=eval(wxf);
+	wy=eval(wyf);
+}
+	
+function updatesim()
+{
+	var clock;
+	evaluatecells();
+	oldt=t; //same time of last update
+	tbox.value=t;
+	abox.value=a;
+	vbox.value=v;
+	wxbox.value=wx;
+	wybox.value=wy; 
+	wt.style.left=wx;
+	wt.style.top=wy; //move the weight
+	if(running)
+	{
+		clock=new Date();
+		newtime=clock.getTime();
+		t+=.01*(newtime-oldtime);
+		oldtime=newtime;
+		setTimeout("updatesim()",50);
+	}
+}
+function getvals()
+{
+	a=abox.value;
+	af=afbox.value;
+	v=vbox.value;
+	vf=vfbox.value;
+	wx=wxbox.value;
+	wxf=wxfbox.value;
+	wy=wybox.value;
+	wyf=wyfbox.value;
+	updatesim();
+}
+	
+
+
+//-->
+</script>
+<br><br><br><br>
+<input type="button" value="run/stop" onclick="run()"><p>
+<input type="button" value="reset clock" onclick="resett()"><p>
+<div class='cell' id='w'><img src='weight.jpg'></div>
+t: <INPUT TYPE='text' id='t' value=0 maxlength=4 READONLY><p>
+a formula: <INPUT TYPE='text' id='af' value="-.05*(wy-250)" onchange=getvals()>
+a value: <INPUT TYPE='text' id='a' value=-7.5 maxlength=4 READONLY><p>
+v formula: <INPUT TYPE='text' id='vf' value="tint('a')" onchange=getvals()>
+v value: <INPUT TYPE='text' id='v' value=0 maxlength=4  READONLY><p>
+wx formula: <INPUT TYPE='text' id='wxf' value=500  onchange=getvals()>
+wx value: <INPUT TYPE='text' id='wx' value=500 maxlength=4 READONLY><p>
+wy formula: <INPUT TYPE='text' id='wyf' value="tint('v')+400"  onchange=getvals()>
+wy value: <INPUT TYPE='text' id='wy' value=400 maxlength=4 READONLY>
+<h2>Another Weight on an Invisible Spring</h2>
+But with this one, you can change the equations used in the calculations. In fact, you can change the behavior completely. Try putting 100*Math.sin(t)+200 in 
+the wx formula box, and 100*Math.cos(t)+300 in the wy formula box, for example (you can copy and paste them from here.)
+<p>
+By the way, putting tint("a") in a formula computes the time integral of a. That's why the formulae you see when you refresh the page make the weight move like it's on a spring. The variable a is computed based on how far from 250 the y coordinate of the weight is; v is given as the time integral of a, and the y coordinate of the weight is the time integral of v plus an initial value. Result: as the weight moves above 250 it is pulled down, and as it moves below it is pulled up.
+<p>
+This "programmable" exhibit is much easier to program than you might think. It uses the Javascript eval() function, that takes an expression that the user types into an input field on the page, and evaluates it as if it had been written in the program.
+
+
+</body>
+</html>
