@@ -6,14 +6,16 @@
 <body>
 <script language="JavaScript" type="text/javascript">
 <!--
-//state of five squares ahead is a number from 0 to 31
+
+//state consists of last n moves and current square
+//0 is used to initialize history, so each history slot is 2 bits
 //have four actions 0:nothing (not learned), 1: turn rt 2: turn left 3: move
-var OVERALLMOVELIMIT=500;
+var OVERALLMOVELIMIT=400;
 var MOVELIMIT=97;
 var ESCAPELIMIT=10;
 var TURNSLIMIT=5;
-var SIDE=13;
-var VIEWHALFWIDTH=2;
+var SIDE=11;
+var HISTLEN=7;
 var ltblue="ltblue5f.JPG";
 var red="red5f.JPG";
 var blue="blue5.JPG";
@@ -28,6 +30,7 @@ var catMoves;
 var totalMoves;
 var consecTurns=0;
 var catRules=[];
+var history=[];
 
 var oldcolor=red;
 var dx=[0,1,0,-1];
@@ -62,11 +65,15 @@ function randomTile()
 }
 function startCat()
 {	
-	catx=5; //don't put cat too close to edge
+	catx=2; 
 	caty=catx;
 	heading =1; //0 north 1 east 2 south 3 west
 	oldcolor=getgrid(catx,caty);
 	setgrid(catx,caty,ltblue);//cat color	
+	for (var i=0;i<HISTLEN;i++)
+	{
+		history[i]=0;
+	}
 	catMoves=0;
 	totalMoves=0;
 	consecTurns=0;
@@ -74,13 +81,25 @@ function startCat()
 }
 function resetCat()
 {
-	for (var i=0;i<Math.pow(2,(2*VIEWHALFWIDTH+1));i++)
+	for (var i=0;i<Math.pow(2,(2*HISTLEN+1));i++)
 	{
 		catRules[i]=0; //nothing learned
 	}
 	nEscapes=0;
+	
 }
-
+function catView()
+{
+	//returns a number from 0 to 2^(2*HISTLEN+1)-1 coding the tile
+	//the cat is on, and the last HISTLEN actions
+	view=viewBit(catx,caty);
+	for (var i=0;i<HISTLEN; i++)
+	{
+		view=view+4*history[i];
+	}
+	return view;
+}
+/*
 function catView()
 {
 	//returns number from 0 to 2^(2*VIEWHALFWIDTH+1)-1 coding the tiles the cat sees
@@ -97,6 +116,7 @@ function catView()
 	}
 	return view;
 }
+*/
 function viewBit(x,y)
 {
 	if (getgrid(x,y)==red)
@@ -179,6 +199,7 @@ function runCat()
 			if (stable)
 			{
 				catRules[catView()]=randomAction();
+				postDatum("s");
 			}
 			//tilePuzzleBox();
 			//resetCat();
@@ -226,12 +247,14 @@ function runCat()
 			catRules[theView]=3;
 			consecTurns=0;
 		}
+		/*
 		if (catMoves>MOVELIMIT)
 		{
 			catMoves=0;
 			catRules[theView]=randomAction();
 			
 		}
+		*/
 		if (catRules[theView]==0) //action not learned
 		{
 			console.log("learning new rule");
@@ -240,16 +263,22 @@ function runCat()
 		}
 		else if (catRules[theView]==1)
 		{
+			record(1);
+			record(heading);
 			turnRight();
 			consecTurns=consecTurns+1;
 		}
 		else if (catRules[theView]==2)
 		{
+			record(2);
+			record(heading);
 			turnLeft();
 			consecTurns=consecTurns+1;
 		}
 		else if (catRules[theView]==3)
 		{
+			record(3)
+			record(heading)
 			tryToMoveCat(theView);
 			consecTurns=0;
 		}
@@ -259,10 +288,18 @@ function runCat()
 	
 	} 	
 }
+function record(n)
+{
+	for (var i=1;i<HISTLEN;i++)
+	{
+		history[i]=history[i-1];
+	}
+	history[0]=n;
+}
 function atDoor()
 {
-	var DOOR=SIDE-3;
-	var DOORWIDTH=3;
+	var DOOR=SIDE-2;
+	var DOORWIDTH=4;
 	//console.log("DOOR is "+DOOR);
 	//var value= ((catx==DOOR)&&(caty==DOOR));
 	value= (catx<=DOOR)&&(catx>=DOOR-DOORWIDTH)&&(caty<=DOOR)&&(caty>=DOOR-DOORWIDTH);
@@ -301,9 +338,15 @@ function tryToMoveCat(view)
 		console.log("Action is "+catRules[view]+" for "+view);
 	}
 }
+/*
 function isLegal(x,y)
 {
 	return !((x<VIEWHALFWIDTH)||(x>SIDE-VIEWHALFWIDTH-1)||(y<VIEWHALFWIDTH)||(y>SIDE-VIEWHALFWIDTH-1));
+}
+*/
+function isLegal(x,y)
+{
+	return !((x<0)||(x>SIDE-1)||(y<0)||(y>SIDE-1));
 }
 function postDatum(string)
 {
