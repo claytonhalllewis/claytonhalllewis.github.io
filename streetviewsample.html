@@ -35,10 +35,12 @@ function initialize() {
           pitch: 10
         }
       });
+  alert("got there");
+  var links=panorama.getLinks();
+  console.log(links[0].description);
+  
   map.setStreetView(panorama);
-	var links=panorama.getLinks();
-	console.log(links[1].description);
-	alert("got there");
+	
 }
 
     </script>
