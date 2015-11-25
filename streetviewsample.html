@@ -36,8 +36,9 @@ function initialize() {
         }
       });
   map.setStreetView(panorama);
-	console.log(panorama.getLinks());
-	alert("got here");
+	var links=panorama.getLinks();
+	console.log(links[1].description);
+	alert("got there");
 }
 
     </script>
