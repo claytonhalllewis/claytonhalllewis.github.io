@@ -1,0 +1,251 @@
+<html>
+<head>
+		<title>Happy New Year!</title>
+		<style type="text/css">
+			.cell
+			{
+				position:absolute;
+			}
+			.text
+			{
+				float: right;
+				position: relative;
+				top: 50px;
+				width: 25%;
+				font-family:Arial, Helvetica, sans-serif
+			}
+			.title
+			{
+				color:red;
+			}
+			
+		</style>
+
+
+			
+</head>
+<body onload="setup()" >
+<script language="JavaScript" type="text/javascript">
+<!--
+var HT=12;
+var WD=24;
+var XOFF=20;
+var YOFF=35;
+var CELLSIZE=25;
+var cometx,comety, dir;
+var running;
+//directions: 0 n, 1 e, 2 s, 3 w
+var movedx=[0,1,0,-1]; 
+var movedy=[-1,0,1,0];
+var rdir=[1,2,3,0];
+var ldir=[3,0,1,2];
+var grid=[];
+var gridstatus=[];
+var placements=[[1,2,1],[1,3,2],[1,4,1],[3,2,1],[3,3,0],[3,4,1],[4,3,0],
+[5,6,2],[5,8,2],[7,3,1],[7,6,1], [8,8,0],[9,3,2],[9,7,2],[10,7,0],[11,3,2],[11,7,0],[11,8,2],
+[12,7,0],[13,3,2],[13,7,0],[13,8,2],[14,3,2],[14,7,2],[15,8,0],[16,3,1],[16,7,1],[17,5,2],[17,6,0],[17,7,1],[19,5,2],[19,8,2],[20,3,0],[21,3,0],[22,3,0],[23,3,0]];
+var gridimage=["trail.png","rstar.png","lstar.png","blue.png"];
+var cometImages=["cometu.png","cometr.png","cometd.png","cometl.png"];
+
+
+for(i=0;i<WD;i++)
+{
+	grid[i]=[];
+	gridstatus[i]=[];
+}
+
+
+for(var i=0;i<WD;i++)
+	for(var j=0;j<HT;j++)
+	{
+		x=XOFF+25*i;
+		y=YOFF+25*j;
+		cellid="c"+x+"$"+y;
+		document.write("<div class='cell'  id='"+cellid+"'><img name='"+cellid+"' src='blue.png' ></div>");
+		thiscell=document.getElementById(cellid);
+		thiscell.style.left=x;
+		thiscell.style.top=y;
+		grid[i][j]=thiscell;
+		gridstatus[i][j]=3; //0=trail, 1=rstar, 2=lstar, 3= blue
+	}
+
+
+function place()
+{
+	for(var i=0;i<WD;i++)
+		for(var j=0;j<HT;j++)
+		{
+			gridstatus[i][j]=3;
+			document.images[grid[i][j].id].src=gridimage[3];
+		}
+	for (var s in placements)
+		put(placements[s]);
+}
+function clearField()
+{
+	for(var i=0;i<WD;i++)
+		for(var j=0;j<HT;j++)
+		{
+			gridstatus[i][j]=3;
+			document.images[grid[i][j].id].src=gridimage[3];
+		}
+	resetcomet();
+	pgobutton.value="go";
+	running=false;
+}
+
+function put(item)
+{
+	gridstatus[item[0]][item[1]]=item[2];
+	document.images[grid[item[0]][item[1]].id].src=gridimage[gridstatus[item[0]][item[1]]];
+}
+//constructors and methods
+function setup()
+{
+	document.onmousedown=mouseDown;
+	pcomet=document.getElementById("comet");
+	pgobutton=document.getElementById("gobutton");
+	pcometimage=document.getElementById("cometimage");
+	running=false;
+	place();
+	resetcomet();
+}
+function mouseDown(e)
+{
+	if (!e) var e=window.event;
+	x=e.clientX;
+	y=e.clientY;
+	var gx=Math.floor((x-XOFF)/CELLSIZE)
+	var gy=Math.floor((y-YOFF)/CELLSIZE)
+	//alert(gx+":"+gy)
+	if ((gx<0)||(gy<0)||(gx>(WD-1))||(gy>(HT-1))) 
+		return true;
+	rotate(gx,gy);
+	return false;
+}
+
+function rotate(x,y)
+{
+	gridstatus[x][y]=nrotate(gridstatus[x][y]);
+	document.images[grid[x][y].id].src=gridimage[gridstatus[x][y]];
+}
+function nrotate(n)
+{
+	return (n+1)%4;
+}
+function flipmirror(gx,gy)//assumes gridstatus is 1 or 2
+{
+	var gs=gridstatus[gx][gy]
+	gridstatus[gx][gy]=3-gs//flip
+	document.images[grid[gx][gy].id].src=gridimage[gridstatus[gx][gy]];
+	
+}
+function fliptrail(gx,gy) //flips 0 and 3
+{
+	var gs=gridstatus[gx][gy]
+	gridstatus[gx][gy]=3-gs//flip
+	document.images[grid[gx][gy].id].src=gridimage[gridstatus[gx][gy]];
+}
+
+function movecomet()
+{
+	if(running)
+	{
+	
+	cometx=cometx+movedx[dir]
+	if (cometx<0) 
+		cometx=cometx+WD
+	if (cometx>(WD-1))
+	{
+		cometx=cometx-WD
+		//if (comety==3)
+		//{
+		//	running=false;
+		//	pgobutton.value="go";
+		//}
+	}
+	comety=comety+movedy[dir]
+	if (comety<0) comety=comety+HT
+	if (comety>(HT-1)) 
+	{
+		comety=comety-HT;
+		
+	}
+		
+	if (gridstatus[cometx][comety]==1)//r star
+	{
+		dir=rdir[dir]
+		document.getElementById('chime1').play()
+	}
+	else if (gridstatus[cometx][comety]==2)//l star
+	{
+		dir=ldir[dir]
+		document.getElementById('chime2').play()
+	}
+	else if (gridstatus[cometx][comety]==0)//trail
+		fliptrail(cometx,comety);
+	else if (gridstatus[cometx][comety]==3)//blue
+		fliptrail(cometx,comety);
+	
+	putcomet(cometx,comety,dir)
+	setTimeout("movecomet()",150)
+	
+	} 	
+}
+
+function putcomet(ax,ay,dir)
+{
+	var nax=XOFF+CELLSIZE*ax;
+	var nay=YOFF+CELLSIZE*ay;
+	pcomet.style.left=nax;
+	pcomet.style.top=nay;
+	pcometimage.src=cometImages[dir];
+}
+function resetcomet()
+{
+	cometx=2
+	comety=3
+	dir=1
+	putcomet(cometx,comety,dir)
+}
+
+
+
+function go()
+{
+	if(!running)
+	{
+		pgobutton.value="stop";
+		running=true;
+		movecomet();
+	}
+	else 
+	{
+		pgobutton.value="go";
+		running=false;
+	}
+}
+
+//-->
+</script>
+<div class="text">
+<input id="gobutton" type="button" value="Go" onclick="go()">
+<input type="button" value="Clear" onclick="clearField()">
+<div class="title">
+<p>Happy New Year from the Cundiff Lewis family!<p>
+</div>
+<p>This animated greeting (press Go to activate) is programmable. You can clear the display, then click on it to place stars with two different gravitational warps (right or left), and comet trails. Repeated clicks cycle among these possibilities. <p>
+<p>If you are patient with the original display you will see that it repeats eventually. Why? </p>
+</div>
+
+<DIV id="comet"
+style="POSITION: absolute"><img src="cometr.png" id="cometimage">
+</DIV>
+<audio id="chime1" preload>
+        <source src="chime1.mp3" type="audio/mpeg" />
+</audio>
+<audio id="chime2" preload>
+        <source src="chime2.mp3" type="audio/mpeg" />
+</audio>
+</body>
+</html>
