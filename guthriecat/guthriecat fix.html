@@ -1,0 +1,329 @@
+<html>
+<head>
+		<title>Guthrie's Cat</title>
+		
+</head>
+<body>
+<script language="JavaScript" type="text/javascript">
+<!--
+//state of five squares ahead is a number from 0 to 31
+//have four actions 0:nothing (not learned), 1: turn rt 2: turn left 3: move
+var OVERALLMOVELIMIT=500;
+var MOVELIMIT=97;
+var ESCAPELIMIT=10;
+var TURNSLIMIT=5;
+var SIDE=13;
+var VIEWHALFWIDTH=2;
+var ltblue="ltblue5f.JPG";
+var red="red5f.JPG";
+var blue="blue5.JPG";
+
+
+var running=false;
+var stable;
+var catx=0;
+var caty=0;
+var heading;
+var catMoves;
+var totalMoves;
+var consecTurns=0;
+var catRules=[];
+
+var oldcolor=red;
+var dx=[0,1,0,-1];
+var dy=[-1,0,1,0];
+
+
+var shadowgrid=[];
+var gridn=0;
+
+for(var j=0;j<SIDE;j++)
+{
+	for(var i=0;i<SIDE;i++)
+	{
+		document.write("<img src='ltblue5f.jpg'>");
+		shadowgrid[gridn]=ltblue;
+		gridn=gridn+1;
+	}
+	document.write("<br>");
+}
+
+function tilePuzzleBox()
+{
+	for(var j=0;j<SIDE;j++)
+		for(var i=0;i<SIDE;i++)
+			setgrid(i,j,randomTile());
+}
+function randomTile()
+{
+	if (Math.floor((Math.random() * 2))==0)
+		return red;
+	else return blue;
+}
+function startCat()
+{	
+	catx=5; //don't put cat too close to edge
+	caty=catx;
+	heading =1; //0 north 1 east 2 south 3 west
+	oldcolor=getgrid(catx,caty);
+	setgrid(catx,caty,ltblue);//cat color	
+	catMoves=0;
+	totalMoves=0;
+	consecTurns=0;
+	stable=true;
+}
+function resetCat()
+{
+	for (var i=0;i<Math.pow(2,(2*VIEWHALFWIDTH+1));i++)
+	{
+		catRules[i]=0; //nothing learned
+	}
+	nEscapes=0;
+	postDatum("<p>");
+}
+
+function catView()
+{
+	//returns number from 0 to 2^(2*VIEWHALFWIDTH+1)-1 coding the tiles the cat sees
+	//taking red as 1 and blue as 0
+	var dir=(heading+1)%4; //direction of line of tiles cat sees
+	var catViewX=catx+dx[heading]-VIEWHALFWIDTH*dx[dir];
+	var catViewY=caty+dy[heading]-VIEWHALFWIDTH*dy[dir];
+	var view=0;
+	for (var i=0;i<(2*VIEWHALFWIDTH+1);i++)
+	{
+		view=2*view+viewBit(catViewX,catViewY);
+		catViewX=catViewX+dx[dir];
+		catViewY=catViewY+dy[dir];
+	}
+	return view;
+}
+function viewBit(x,y)
+{
+	if (getgrid(x,y)==red)
+		return 1;
+	else return 0;
+}
+
+
+function setgrid(x,y,color)
+{
+	//alert("setting "+x+":"+y+" to "+color);
+	document.images[y*SIDE+x].src=color;
+	shadowgrid[y*SIDE+x]=color;
+}
+function getgrid(x,y)
+{
+	return shadowgrid[y*SIDE+x];
+}
+	
+function run()
+{
+	if(!running)
+	{
+		tilePuzzleBox();
+		resetCat();
+		setgrid(catx,caty,oldcolor);
+		startCat();
+		running=true;
+		runCat();
+	}
+	else
+		running=false;
+}
+function reset()
+{
+	if(running)
+		running=false;
+	setgrid(catx,caty,oldcolor);
+	startCat();
+}
+/*
+function randomAction()
+{
+	return Math.floor((Math.random() * 3)+1);
+}
+*/
+
+function randomAction()
+{
+	stable=false; //a rule has changed
+	var PROBMOVE=.9;
+	var PROBL=(1-PROBMOVE)/2;
+	var p=Math.random();
+	if (p<PROBMOVE)
+		return 3;
+	if (p<PROBMOVE+PROBL)
+		return 2;
+	return 1;
+}
+function randomTurn()
+{
+	stable=false; //a rule has changed
+	if (Math.random()<.5)
+		return 2;
+	else return 1;
+}
+	
+
+function runCat()
+{
+	
+	if(running)
+	{
+		
+		console.log("at "+catx+" , "+caty);
+		if(totalMoves>OVERALLMOVELIMIT)
+		{
+			//alert("time out: restarting cat");
+			postDatum("r");
+			if (stable)
+			{
+				catRules[catView()]=randomAction();
+			}
+			//tilePuzzleBox();
+			//resetCat();
+			setgrid(catx,caty,oldcolor);
+			startCat();
+		}
+		if (atDoor())
+		{
+			alert("Escaped! after "+totalMoves+" moves.");
+			postDatum("e"+totalMoves+" ");
+			if (stable)
+			{
+				alert("stable: new cat");
+				postDatum("s<p>");
+				tilePuzzleBox();
+				resetCat();
+				startCat();
+			}
+			else
+			{
+				setgrid(catx,caty,oldcolor);
+				startCat();
+			}
+			/*
+			nEscapes=nEscapes+1;
+			if (nEscapes<ESCAPELIMIT)
+			{
+				setgrid(catx,caty,oldcolor);
+				startCat();
+			}
+			else
+			{
+				alert("escape limit: new cat");
+				postDatum("<p>");
+				tilePuzzleBox();
+				resetCat();
+				startCat();
+			}
+			*/		
+		}
+		var theView=catView();
+		console.log("view is "+theView);
+		if (consecTurns>TURNSLIMIT) //dizzy rule
+		{
+			catRules[theView]=3;
+			consecTurns=0;
+		}
+		if (catMoves>MOVELIMIT)
+		{
+			catMoves=0;
+			catRules[theView]=randomAction();
+			
+		}
+		if (catRules[theView]==0) //action not learned
+		{
+			console.log("learning new rule");
+			catRules[theView]=randomAction();
+			console.log("Action is "+catRules[theView]+" for "+theView);
+		}
+		if (catRules[theView]==1)
+		{
+			turnRight();
+			consecTurns=consecTurns+1;
+		}
+		else if (catRules[theView]==2)
+		{
+			turnLeft();
+			consecTurns=consecTurns+1;
+		}
+		else if (catRules[theView]==3)
+		{
+			tryToMoveCat(theView);
+			consecTurns=0;
+		}
+		catMoves=catMoves+1;
+		totalMoves=totalMoves+1;
+		setTimeout("runCat();",10);
+	
+	} 	
+}
+function atDoor()
+{
+	var DOOR=SIDE-3;
+	var DOORWIDTH=3;
+	//console.log("DOOR is "+DOOR);
+	//var value= ((catx==DOOR)&&(caty==DOOR));
+	value= (catx<=DOOR)&&(catx>=DOOR-DOORWIDTH)&&(caty<=DOOR)&&(caty>=DOOR-DOORWIDTH);
+	console.log(catx+","+caty+","+value);
+	return value;
+}
+function turnLeft()
+{
+	console.log("turning left");
+	if (heading == 0)
+		heading =3;
+	else heading=heading-1;
+}
+function turnRight()
+{
+	console.log("turning right");
+	heading = (heading+1)%4;
+}
+function tryToMoveCat(view)
+{
+	var newCatX=catx+dx[heading];
+	var newCatY=caty+dy[heading];
+	if (isLegal(newCatX,newCatY))
+	{	
+		console.log("moving");
+		setgrid(catx,caty,oldcolor);
+		oldcolor=getgrid(newCatX,newCatY);
+		catx=newCatX;
+		caty=newCatY;
+		setgrid(catx,caty,ltblue);
+	}
+	else 
+	{
+		console.log("illegal move");
+		catRules[view]=randomTurn();
+		console.log("Action is "+catRules[view]+" for "+view);
+	}
+}
+function isLegal(x,y)
+{
+	return !((x<VIEWHALFWIDTH)||(x>SIDE-VIEWHALFWIDTH-1)||(y<VIEWHALFWIDTH)||(y>SIDE-VIEWHALFWIDTH-1));
+}
+function postDatum(string)
+{
+	var div=document.getElementById("data");
+	div.innerHTML+=string;
+}
+
+//-->
+</script>
+<input type="button" value="run/stop" onclick="run()">
+<input type="button" value="reset" onclick="reset()">
+<H2>Guthrie's Cat</H2>
+Press the run/stop button to start or stop the cat. Press the reset button to start over with a new puzzle box.
+<p>
+
+<div id="data"></div>
+
+
+
+
+</body>
+</html>
