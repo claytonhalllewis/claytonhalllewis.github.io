@@ -1,0 +1,233 @@
+<html>
+<head>
+		<title>Happy New Year 2017</title>			
+</head>
+<body >
+<audio id="chime1" preload>
+        <source src="chime1.mp3" type="audio/mpeg" />
+</audio>
+<audio id="chime2" preload>
+        <source src="chime2.mp3" type="audio/mpeg" />
+</audio>
+<script language="JavaScript" type="text/javascript">
+<!--
+//figure out how to delimit the blocks in the rules
+//by inserting a translation between WHITE, GREEN and other images actually
+//used in rules (that are bigger and have borders)
+//add sound... how?
+var SIDE=40;
+var WIDTH=2*SIDE;
+var HALFSIDE=Math.floor(SIDE/2);
+var HALFWIDTH=Math.floor(WIDTH/2);
+var GREEN="green.png";
+var WHITE="white.png";
+var SPACE="white.png";
+
+var GRIDBASE; //will hold the number of the first image in the grid
+var RULEBASE; //will hold the number of the first image in the rules
+
+var row;
+
+var shadowgrid=new Array;
+var imagecount=0;
+
+//first layout grid
+GRIDBASE=imagecount; //number of first image in grid
+for(j=0;j<SIDE;j++)
+{
+	for(i=0;i<WIDTH;i++)
+	{
+		document.write("<img src='"+GREEN+"' onMouseUp='togglegrid("+i+","+j+");'>");
+		shadowgrid[imagecount]=GREEN;
+		imagecount++;
+	}
+	document.write("<br>");
+}
+//then lay out rules
+document.write("<br>");
+RULEBASE=imagecount;
+for(j=0;j<8;j++)
+{
+	for(i=0;i<5;i++)
+	{
+		document.write("<img src='"+SPACE+"' onMouseUp='togglerule("+i+","+j+");'>");
+		shadowgrid[imagecount]=GREEN;
+		imagecount++;
+	}
+	document.write("<br>");
+}
+document.write("<p>"); //spacer
+setrule(4,0,GREEN);
+for(j=1;j<7;j++)
+	setrule(4,j,WHITE); //set some bits to blue in the rules
+setrule(4,7,GREEN);
+setgrid(HALFWIDTH/2,SIDE-1,WHITE); // a seed
+//setgrid(HALFWIDTH,SIDE-1,WHITE); // a seed
+setgrid(3*HALFWIDTH/2,SIDE-1,WHITE); // a seed
+layout_rules();
+generate();
+
+function setgrid(x,y,color) //this function sets grid position (x,y) to the color given by color
+{
+	document.images[GRIDBASE+y*WIDTH+x].src=color;
+	shadowgrid[GRIDBASE+y*WIDTH+x]=color;
+}
+
+
+function getgrid(x,y)
+{
+	//alert(x+":"+y);
+	return shadowgrid[GRIDBASE+y*WIDTH+x];
+}
+function colorToRule(color)
+{
+	if (color==WHITE)
+		return "whiteSquare.png";
+	else return "greenSquare.png";
+}
+function setrule(x,y,color) //this function sets rule position (x,y) to the color given by color
+{
+	document.images[RULEBASE+y*5+x].src=colorToRule(color);
+	shadowgrid[RULEBASE+y*5+x]=color;
+}
+
+
+function getrule(x,y)
+{
+	//alert(x+":"+y);
+	return shadowgrid[RULEBASE+y*5+x];
+}
+
+
+
+function togglegrid(x,y)
+{
+	//alert("grid"+x+":"+y);
+	if(y<SIDE-1)
+		return; //only toggle last row
+	setgrid(x,y,othercolor(getgrid(x,y))); //changes 0 to 1 and 1 to 0
+}
+	
+function togglerule(x,y)
+{
+	//alert("rule "+x+":"+y);
+	if(x<4)
+		return; //only toggle last column
+	setrule(x,y,othercolor(getrule(x,y))); //changes 0 to 1 and 1 to 0
+}
+function othercolor(color)
+{
+	if (color==GREEN)
+		return WHITE;
+	return GREEN;
+}
+function layout_rules()
+{
+	var i,j;
+	for (i=0;i<8;i++)
+	{
+	
+		bits=tobits(i,3);
+		//alert(bits);
+		for(j=0;j<3;j++)
+		{
+			if(bits.charAt(j)=='0')
+				setrule(j,i,GREEN);
+			else setrule(j,i,WHITE);
+		}
+	}
+}
+function tobits(n,m) //converts n to a string of m 0's and 1's
+{
+	if(m==0)
+		return "";
+	if (odd(n))
+		return tobits((n-1)/2,m-1)+"1";
+	return tobits(n/2,m-1)+"0";
+}
+function odd(n)
+{
+	return (n%2)==1;
+}
+	
+	
+
+
+function generate()
+{
+	row=SIDE-2;
+	genrow();
+}
+function genrow()
+{
+	for(col=0;col<WIDTH;col++)
+			{
+				//alert(row+":"+col);
+				setgrid(col,row,rulebit(row+1,col));
+			}
+	row--;
+	if (row>-1)
+		setTimeout("genrow()",100);
+}
+function rulebit(row,col)
+{
+	var rule;
+	for(rule=0;rule<8;rule++)
+		if (match(rule,row,col))
+		{
+			//alert("rule "+rule+" matches row "+row+" col "+col);
+			
+			
+			
+			return getrule(4,rule);
+		}
+	alert("no match");
+	alert(row+":"+col);
+}
+function match(rule,row,col)
+{
+	var offset;
+	for(offset=-1;offset<2;offset++)
+		if(getrule(1+offset,rule)!=getgrid(neighbor(col,offset),row))
+			return false;
+	return true;
+}
+function neighbor(n,m)
+{
+	//alert((n+m+SIDE)%SIDE);
+	return (n+m+WIDTH)%WIDTH;
+
+}
+function rangen()
+{
+	var i;
+	for(i=0;i<WIDTH;i++)
+	{
+		if(Math.floor(2*Math.random())==0)
+			setgrid(i,SIDE-1,GREEN);
+		else setgrid(i,SIDE-1,WHITE);
+	}
+	generate();
+}
+
+
+//-->
+</script>
+<p>
+<input type="button" value="random" onclick="rangen()">
+<input type="button" value="generate" onclick="generate()">
+
+<H2>One-Dimensional Cellular Automaton</H2>
+When you press the random button, this program will generate a pattern. It fills in the bottom row of the large grid randomly, and then fills in the rows above by applying rules.
+<p>
+The rules are specified in the small grid at lower left. There are 8 rules, one in each row of the small grid. The first three blocks describe a pattern, of three blocks, and the block to the right says what to do with the center block of the three, in the next row. For example, the first rule says, if a block is green, and so are the blocks on either side, make the block above the center block green. The second rule says, if a block is green, and so is the block to its left, but the block to the right is white, make the block above the center block white.
+<p>
+You can change the rules by clicking on the blocks in the column at the right, which will change their color. Since these blocks determine what color the blocks in the next row will be, these changes will affect the pattern. Try it: click some of the these blocks, and press the random button. You may like the pattern you get if you make the top and sixth blocks white and the rest green.
+<p>
+You can also experiment by controlling the color of the blocks in the bottom row of the large grid. Click on these blocks to change their colors, then press the generate button.
+<p>
+Reference: Wolfram, S. (2002) <em>A New Kind of Science</em>. Champaign, IL: Wolfram Media, Ch. 2,3.
+
+
+</body>
+</html>

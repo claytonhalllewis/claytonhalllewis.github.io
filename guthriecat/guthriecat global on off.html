@@ -1,0 +1,367 @@
+<html>
+<head>
+		<title>Guthrie's Cat</title>
+		
+</head>
+<body>
+<script language="JavaScript" type="text/javascript">
+<!--
+//use globally defined actions
+//two modes: on trail and off trail
+//when on trail, always break out when joining trajectory, change to off
+//when off trail, always join trajectory when can, change to on
+//for actions: n e s w 1 2 3 4
+//no heading
+//for state: 0,1,2 for each of 9 neighbors
+//no barrier to see if learns to get through
+//but does not stop when stable
+///see notes on hash version
+//
+//state consists of current view
+
+
+var MOVELIMIT=100;
+
+var SIDE=13;
+var HISTLEN=1; //not used in state, but to track last move
+var VIEWHALFWIDTH=3; //cat sees 2*VIEWWIDTH+1 cells in front
+var ltblue="ltblue5f.JPG";
+var red="red5f.JPG";
+var blue="blue5.JPG";
+var black="black5.JPG";
+
+var START=0;
+
+var TRIALS=500;
+var escapes=0;
+var onTrail;
+
+var running=false;
+var stable;
+var catx=0;
+var caty=0;
+var totalMoves;
+var catRules=[];
+var lastAction=[];
+var catHistory="";
+
+var oldcolor=red;
+var dx=[0,1,0,-1];
+var dy=[-1,0,1,0];
+
+
+var shadowgrid=[];
+var gridn=0;
+var ctxs=[];
+var currentCtx;
+
+for(var j=0;j<SIDE;j++)
+{
+	for(var i=0;i<SIDE;i++)
+	{
+		document.write("<img src='ltblue5f.jpg'>");
+		shadowgrid[gridn]=ltblue;
+		gridn=gridn+1;
+	}
+	document.write("<br>");
+}
+function placeBarrier()
+{
+	//barrier with one hole
+	for (var i=0;i<SIDE;i++)
+		setgrid(4,i,black);
+	setgrid(4,6,red);
+}
+
+function tilePuzzleBox()
+{
+	for(var j=0;j<SIDE;j++)
+		for(var i=0;i<SIDE;i++)
+			setgrid(i,j,randomTile());
+}
+function randomTile()
+{
+	if (Math.floor((Math.random() * 2))==0)
+		return red;
+	else return blue;
+}
+function startCat()
+{	
+	catx=START; 
+	caty=catx;
+	oldcolor=getgrid(catx,caty);
+	setgrid(catx,caty,ltblue);//cat color	
+	catHistory="";
+	totalMoves=0;
+	stable=true;
+	onTrail=true;
+	currentCtx=(currentCtx+1)%3;
+	startPlot();
+}
+function resetCat()
+{
+	catrules=[];
+	catHistory="";
+	currentCtx=2;
+	
+}
+function updatecatHistory(move)
+{
+	catHistory=catHistory+move;
+	if (catHistory.length>HISTLEN)
+		catHistory=catHistory.slice(1,HISTLEN+1);
+}
+function catView()
+{
+	//returns a string of 9 symbols
+	// coding the tiles the cat sees
+	//taking red as 2 and blue as 1, wall as 0
+	var view="";
+	for (var x=-1;x<2;x++)
+		for (var y=-1;y<2;y++)
+			if ((x==0)&&(y==0))
+			{
+				if (oldcolor==red)
+					view=view+"2";
+				else view=view+"1";
+			}
+			else view=view+viewBit(catx+x,caty+y);
+	return view;
+}
+
+function viewBit(x,y)
+{
+	if ((x<0)||(y<0)||(x>SIDE-1)||(y>SIDE-1))
+		return "0"; //wall
+	if (getgrid(x,y)==red)
+		return "2";
+	else if(getgrid(x,y)==black)
+		return "0";
+	else return "1";
+}
+function catState()
+{
+	return catView();
+}
+
+
+function setgrid(x,y,color)
+{
+	//console.log("setting "+x+":"+y+" to "+color);
+	document.images[y*SIDE+x].src=color;
+	shadowgrid[y*SIDE+x]=color;
+}
+function getgrid(x,y)
+{
+	return shadowgrid[y*SIDE+x];
+}
+function startPlot()
+{
+	
+	ctxs[currentCtx].clearRect(0,0,260,260);
+	ctxs[currentCtx].beginPath();
+	ctxs[currentCtx].moveTo(20*START,20*START);
+
+}
+
+function drawMove()
+{
+	ctxs[currentCtx].lineTo(20*catx,20*caty);
+	ctxs[currentCtx].stroke();
+}
+function markChange()
+{
+	ctxs[currentCtx].fillStyle = "#FF0000";
+	ctxs[currentCtx].fillRect(catx*20,caty*20,10,10);
+}
+function markBreak()
+{
+	ctxs[currentCtx].fillStyle = "#FF00FF";
+	ctxs[currentCtx].fillRect(catx*20,caty*20,10,10);
+}
+	
+function markEscape()
+{
+	ctxs[currentCtx].fillStyle = "#00FF00";
+	ctxs[currentCtx].fillRect(catx*20,caty*20,10,10);
+}
+function run()
+{
+	if(!running)
+	{
+		tilePuzzleBox();
+		//placeBarrier();
+		var c=document.getElementById("myCanvas0");
+		ctxs[0]=c.getContext("2d");
+		c=document.getElementById("myCanvas1");
+		ctxs[1]=c.getContext("2d");
+		c=document.getElementById("myCanvas2");
+		ctxs[2]=c.getContext("2d");
+		resetCat();
+		setgrid(catx,caty,oldcolor);
+		startCat();
+		running=true;
+		runCat();
+	}
+	else
+		running=false;
+}
+
+
+function randomAction()
+{
+	var rand=Math.random();
+	var bar=.25;
+	for(var action=1;action<5;action++)
+	{
+		if (rand<bar)
+			return action;
+		bar=bar+.25;
+	}
+}
+
+		
+function otherAction(a) //assumes actions 1,2,3,4
+{
+	//not really random
+	if (Math.random()<.5)
+		return a%4+1;
+	if (a=1)
+		return 4;
+	return a-1;
+}
+
+function runCat()
+{
+	
+	if(running)
+	{
+		
+		console.log("at "+catx+" , "+caty);
+	
+		if (atDoor())
+		{
+			markEscape();
+			//alert("Escaped! after "+totalMoves+" moves.");
+			escapes=escapes+1;
+			if (escapes>=TRIALS)
+			{
+				tilePuzzleBox();
+				//placeBarrier();
+				escapes=0;
+				//resetCat();
+				//startCat();
+				return;
+
+			}
+			postDatum(totalMoves+",");
+			setgrid(catx,caty,oldcolor);
+			startCat();
+		
+		}
+		var theState=catState();
+		console.log("state is "+theState);
+		var theMove;
+		
+		if (!catRules.hasOwnProperty(theState)) //action not learned
+		{
+			console.log("learning new rule");
+			theMove=randomAction();
+			while(!isLegal(theMove))
+			{
+				theMove=randomAction();
+			}
+			lastAction[theState]=catHistory[0];
+			console.log("++++++++++++++++++");
+			markChange();
+		}
+		else //been at this state before
+		{
+			
+			if (lastAction[theState]!=catHistory[0])//orbit!
+			{
+				console.log("old: "+lastAction[theState]+
+					" current: "+catHistory[0]);
+				if (onTrail) //need to break orbit
+				{
+					var oldMove=catRules[theState];
+					theMove=randomAction();//try to break out
+					while(!isLegal(theMove)||(theMove==oldMove))
+					{
+						theMove=randomAction();
+					}
+					lastAction[theState]=oldMove;
+					markBreak();
+					onTrail=false;
+				}
+				else //off the trail; need to join
+				{
+					lastAction[theState]=oldMove;
+					theMove=catRules[theState];
+					onTrail=true;
+				}
+			}
+			else //not an orbit; use stored move
+			{
+				theMove=catRules[theState];
+			}
+		}
+		//make the move
+		totalMoves++;
+		catRules[theState]=theMove;
+		
+		updatecatHistory(theMove);
+		move(theMove);
+		setTimeout("runCat();",10);
+	
+	} 	
+}
+function atDoor()
+{
+	var DOOR=SIDE-2;
+	var DOORWIDTH=4;
+	value= (catx<=DOOR)&&(catx>=DOOR-DOORWIDTH)&&(caty<=DOOR)&&(caty>=DOOR-DOORWIDTH);
+	//console.log(catx+","+caty+","+value);
+	return value;
+}
+function move(aMove)
+{
+	var newCatX=catx+dx[aMove-1];
+	var newCatY=caty+dy[aMove-1];
+	
+	console.log("moving "+aMove);
+	setgrid(catx,caty,oldcolor);
+	oldcolor=getgrid(newCatX,newCatY);
+	catx=newCatX;
+	caty=newCatY;
+	setgrid(catx,caty,ltblue);
+	drawMove();
+}
+function isLegal(aMove)
+{
+	var newCatX=catx+dx[aMove-1];
+	var newCatY=caty+dy[aMove-1];
+	return !(viewBit(newCatX,newCatY)==0);
+}
+function postDatum(string)
+{
+	var div=document.getElementById("data");
+	div.innerHTML+=string;
+}
+
+//-->
+</script>
+<input type="button" value="run" onclick="run()">
+<H2>Guthrie's Cat</H2>
+<p>
+<canvas id="myCanvas0" width="260" height="260" style="border:1px solid #d3d3d3;">
+</canvas>
+<canvas id="myCanvas1" width="260" height="260" style="border:1px solid #d3d3d3;">
+</canvas>
+<canvas id="myCanvas2" width="260" height="260" style="border:1px solid #d3d3d3;">
+</canvas>
+<div id="data"></div>
+
+
+</body>
+</html>

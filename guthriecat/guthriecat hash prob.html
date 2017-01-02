@@ -6,17 +6,23 @@
 <body>
 <script language="JavaScript" type="text/javascript">
 <!--
-//state of five squares ahead is a number from 0 to 31
+//replace "fatigue" by probabilistic disruption
+//see notes on hash version
+//in this version when a max number of moves is made, a random change is made
+//to the last rule, corresponding to guthrie's fatigue notion
+//state consists of last n moves and current view
 //have four actions 0:nothing (not learned), 1: turn rt 2: turn left 3: move
-var OVERALLMOVELIMIT=500;
-var MOVELIMIT=97;
-var ESCAPELIMIT=10;
-var TURNSLIMIT=5;
+
+var MOVELIMIT=100;
+
 var SIDE=13;
-var VIEWHALFWIDTH=2;
+var HISTLEN=2;
+var VIEWHALFWIDTH=2; //cat sees 2*VIEWWIDTH+1 cells in front
 var ltblue="ltblue5f.JPG";
 var red="red5f.JPG";
 var blue="blue5.JPG";
+
+var START=0;
 
 
 var running=false;
@@ -26,8 +32,11 @@ var caty=0;
 var heading;
 var catMoves;
 var totalMoves;
-var consecTurns=0;
+//var movesSincePause;
+//var consecTurns=0;
+var PDISRUPTION=.01;
 var catRules=[];
+var catHistory="";
 
 var oldcolor=red;
 var dx=[0,1,0,-1];
@@ -36,6 +45,8 @@ var dy=[-1,0,1,0];
 
 var shadowgrid=[];
 var gridn=0;
+var ctxs=[];
+var currentCtx;
 
 for(var j=0;j<SIDE;j++)
 {
@@ -62,47 +73,62 @@ function randomTile()
 }
 function startCat()
 {	
-	catx=5; //don't put cat too close to edge
+	catx=START; 
 	caty=catx;
 	heading =1; //0 north 1 east 2 south 3 west
 	oldcolor=getgrid(catx,caty);
 	setgrid(catx,caty,ltblue);//cat color	
-	catMoves=0;
+	catHistory="";
+	//movesSincePause=0;
 	totalMoves=0;
-	consecTurns=0;
 	stable=true;
+	currentCtx=(currentCtx+1)%3;
+	startPlot();
 }
 function resetCat()
 {
-	for (var i=0;i<Math.pow(2,(2*VIEWHALFWIDTH+1));i++)
-	{
-		catRules[i]=0; //nothing learned
-	}
-	nEscapes=0;
-	postDatum("<p>");
+	catrules=[];
+	catHistory="";
+	catMoves=0;
+	currentCtx=2;
+	//movesSincePause=0;
+	
 }
-
+function updatecatHistory(move)
+{
+	catHistory=catHistory+move;
+	if (catHistory.length>HISTLEN)
+		catHistory=catHistory.slice(1,HISTLEN+1);
+}
 function catView()
 {
-	//returns number from 0 to 2^(2*VIEWHALFWIDTH+1)-1 coding the tiles the cat sees
-	//taking red as 1 and blue as 0
+	//returns a string of 2*VIEWIDTH+1 symbols
+	// coding the tiles the cat sees
+	//taking red as 2 and blue as 1, wall as 0
 	var dir=(heading+1)%4; //direction of line of tiles cat sees
 	var catViewX=catx+dx[heading]-VIEWHALFWIDTH*dx[dir];
 	var catViewY=caty+dy[heading]-VIEWHALFWIDTH*dy[dir];
-	var view=0;
+	var view="";
 	for (var i=0;i<(2*VIEWHALFWIDTH+1);i++)
 	{
-		view=2*view+viewBit(catViewX,catViewY);
+		view=view+viewBit(catViewX,catViewY);
 		catViewX=catViewX+dx[dir];
 		catViewY=catViewY+dy[dir];
 	}
 	return view;
 }
+
 function viewBit(x,y)
 {
+	if ((x<0)||(y<0)||(x>SIDE-1)||(y>SIDE-1))
+		return "0"; //wall
 	if (getgrid(x,y)==red)
-		return 1;
-	else return 0;
+		return "2";
+	else return "1";
+}
+function catState()
+{
+	return catView()+catHistory;
 }
 
 
@@ -116,12 +142,42 @@ function getgrid(x,y)
 {
 	return shadowgrid[y*SIDE+x];
 }
+function startPlot()
+{
 	
+	ctxs[currentCtx].clearRect(0,0,260,260);
+	ctxs[currentCtx].beginPath();
+	ctxs[currentCtx].moveTo(20*START,20*START);
+
+}
+
+function drawMove()
+{
+	ctxs[currentCtx].lineTo(20*catx,20*caty);
+	ctxs[currentCtx].stroke();
+}
+function markChange()
+{
+	ctxs[currentCtx].fillStyle = "#FF0000";
+	ctxs[currentCtx].fillRect(catx*20,caty*20,10,10);
+}
+	
+function markEscape()
+{
+	ctxs[currentCtx].fillStyle = "#00FF00";
+	ctxs[currentCtx].fillRect(catx*20,caty*20,10,10);
+}
 function run()
 {
 	if(!running)
 	{
 		tilePuzzleBox();
+		var c=document.getElementById("myCanvas0");
+		ctxs[0]=c.getContext("2d");
+		c=document.getElementById("myCanvas1");
+		ctxs[1]=c.getContext("2d");
+		c=document.getElementById("myCanvas2");
+		ctxs[2]=c.getContext("2d");
 		resetCat();
 		setgrid(catx,caty,oldcolor);
 		startCat();
@@ -138,17 +194,12 @@ function reset()
 	setgrid(catx,caty,oldcolor);
 	startCat();
 }
-/*
-function randomAction()
-{
-	return Math.floor((Math.random() * 3)+1);
-}
-*/
+
 
 function randomAction()
 {
-	stable=false; //a rule has changed
-	var PROBMOVE=.9;
+	//stable=false; //a rule has changed
+	var PROBMOVE=.5;
 	var PROBL=(1-PROBMOVE)/2;
 	var p=Math.random();
 	if (p<PROBMOVE)
@@ -159,12 +210,21 @@ function randomAction()
 }
 function randomTurn()
 {
-	stable=false; //a rule has changed
-	if (Math.random()<.5)
+	
+	var p=Math.random();
+	if (p<.5)
 		return 2;
-	else return 1;
+	return 1;
 }
 	
+function otherAction(a) //assumes actions 1,2,3
+{
+	if (Math.random()<.5)
+		return a%3+1;
+	if (a=1)
+		return 3;
+	return a-1;
+}
 
 function runCat()
 {
@@ -173,22 +233,12 @@ function runCat()
 	{
 		
 		console.log("at "+catx+" , "+caty);
-		if(totalMoves>OVERALLMOVELIMIT)
-		{
-			//alert("time out: restarting cat");
-			postDatum("r");
-			if (stable)
-			{
-				catRules[catView()]=randomAction();
-			}
-			//tilePuzzleBox();
-			//resetCat();
-			setgrid(catx,caty,oldcolor);
-			startCat();
-		}
+	
 		if (atDoor())
 		{
+			markEscape();
 			alert("Escaped! after "+totalMoves+" moves.");
+			
 			postDatum("e"+totalMoves+" ");
 			if (stable)
 			{
@@ -202,72 +252,60 @@ function runCat()
 			{
 				setgrid(catx,caty,oldcolor);
 				startCat();
-			}
-			/*
-			nEscapes=nEscapes+1;
-			if (nEscapes<ESCAPELIMIT)
-			{
-				setgrid(catx,caty,oldcolor);
-				startCat();
-			}
-			else
-			{
-				alert("escape limit: new cat");
-				postDatum("<p>");
-				tilePuzzleBox();
-				resetCat();
-				startCat();
-			}
-			*/		
+			}	
 		}
-		var theView=catView();
-		console.log("view is "+theView);
-		if (consecTurns>TURNSLIMIT) //dizzy rule
+		var theState=catState();
+		console.log("state is "+theState);
+		//if (movesSincePause>MOVELIMIT) //fatigue
+		if (Math.random()<PDISRUPTION)
 		{
-			catRules[theView]=3;
-			consecTurns=0;
-		}
-		if (catMoves>MOVELIMIT)
-		{
-			catMoves=0;
-			catRules[theView]=randomAction();
+			console.log(">>>>>>>>>>>>>fatigue<<<<<<<<<<<<<<<");
+			//movesSincePause=0;
+			catRules[theState]=otherAction(catRules[theState]);
+			console.log("++++++++++++++++++");
+			markChange();
+			stable=false;
 			
 		}
-		if (catRules[theView]==0) //action not learned
+		
+		if (!catRules.hasOwnProperty(theState)) //action not learned
 		{
 			console.log("learning new rule");
-			catRules[theView]=randomAction();
-			console.log("Action is "+catRules[theView]+" for "+theView);
+			catRules[theState]=randomAction();
+			console.log("++++++++++++++++++");
+			markChange();
+			stable=false;
 		}
-		if (catRules[theView]==1)
+		//making a move
+		//movesSincePause++;
+		
+		//console.log(movesSincePause);
+		totalMoves++;
+		var theMove=catRules[theState];
+		updatecatHistory(theMove);
+		if (catRules[theState]==1)
 		{
 			turnRight();
-			consecTurns=consecTurns+1;
+			
 		}
-		else if (catRules[theView]==2)
+		else if (catRules[theState]==2)
 		{
 			turnLeft();
-			consecTurns=consecTurns+1;
 		}
-		else if (catRules[theView]==3)
+		else if (catRules[theState]==3)
 		{
-			tryToMoveCat(theView);
-			consecTurns=0;
+			tryToMoveCat(theState);
 		}
-		catMoves=catMoves+1;
-		totalMoves=totalMoves+1;
 		setTimeout("runCat();",10);
 	
 	} 	
 }
 function atDoor()
 {
-	var DOOR=SIDE-3;
-	var DOORWIDTH=3;
-	//console.log("DOOR is "+DOOR);
-	//var value= ((catx==DOOR)&&(caty==DOOR));
+	var DOOR=SIDE-2;
+	var DOORWIDTH=4;
 	value= (catx<=DOOR)&&(catx>=DOOR-DOORWIDTH)&&(caty<=DOOR)&&(caty>=DOOR-DOORWIDTH);
-	console.log(catx+","+caty+","+value);
+	//console.log(catx+","+caty+","+value);
 	return value;
 }
 function turnLeft()
@@ -294,21 +332,27 @@ function tryToMoveCat(view)
 		catx=newCatX;
 		caty=newCatY;
 		setgrid(catx,caty,ltblue);
+		drawMove();
 	}
 	else 
 	{
 		console.log("illegal move");
+		console.log("++++++++++++++++++");
 		catRules[view]=randomTurn();
-		console.log("Action is "+catRules[view]+" for "+view);
+		markChange();
 		if (catRules[view]==1)
+		{
 			turnRight();
+			
+		}
 		else turnLeft();
-	
+		stable=false;
 	}
 }
+
 function isLegal(x,y)
 {
-	return !((x<VIEWHALFWIDTH)||(x>SIDE-VIEWHALFWIDTH-1)||(y<VIEWHALFWIDTH)||(y>SIDE-VIEWHALFWIDTH-1));
+	return !(viewBit(x,y)==0);
 }
 function postDatum(string)
 {
@@ -318,15 +362,16 @@ function postDatum(string)
 
 //-->
 </script>
-<input type="button" value="run/stop" onclick="run()">
-<input type="button" value="reset" onclick="reset()">
+<input type="button" value="run" onclick="run()">
 <H2>Guthrie's Cat</H2>
-Press the run/stop button to start or stop the cat. Press the reset button to start over with a new puzzle box.
 <p>
-
+<canvas id="myCanvas0" width="260" height="260" style="border:1px solid #d3d3d3;">
+</canvas>
+<canvas id="myCanvas1" width="260" height="260" style="border:1px solid #d3d3d3;">
+</canvas>
+<canvas id="myCanvas2" width="260" height="260" style="border:1px solid #d3d3d3;">
+</canvas>
 <div id="data"></div>
-
-
 
 
 </body>

@@ -8,6 +8,7 @@
 <!--
 //state of five squares ahead is a number from 0 to 31
 //have four actions 0:nothing (not learned), 1: turn rt 2: turn left 3: move
+//this version starts closer to corner and makes door smaller
 var OVERALLMOVELIMIT=500;
 var MOVELIMIT=97;
 var ESCAPELIMIT=10;
@@ -23,6 +24,7 @@ var running=false;
 var stable;
 var catx=0;
 var caty=0;
+var START=3; //not too close to edge
 var heading;
 var catMoves;
 var totalMoves;
@@ -36,6 +38,7 @@ var dy=[-1,0,1,0];
 
 var shadowgrid=[];
 var gridn=0;
+var ctx;
 
 for(var j=0;j<SIDE;j++)
 {
@@ -47,6 +50,7 @@ for(var j=0;j<SIDE;j++)
 	}
 	document.write("<br>");
 }
+
 
 function tilePuzzleBox()
 {
@@ -62,7 +66,7 @@ function randomTile()
 }
 function startCat()
 {	
-	catx=5; //don't put cat too close to edge
+	catx=START; 
 	caty=catx;
 	heading =1; //0 north 1 east 2 south 3 west
 	oldcolor=getgrid(catx,caty);
@@ -71,6 +75,7 @@ function startCat()
 	totalMoves=0;
 	consecTurns=0;
 	stable=true;
+	startPlot();
 }
 function resetCat()
 {
@@ -116,12 +121,33 @@ function getgrid(x,y)
 {
 	return shadowgrid[y*SIDE+x];
 }
+
+function startPlot()
+{
+	
+	ctx.clearRect(0,0,260,260);
+	ctx.beginPath();
+	ctx.moveTo(20*START,20*START);
+
+}
+function drawMove()
+{
+	ctx.lineTo(20*catx,20*caty);
+	ctx.stroke();
+}
+function markChange()
+{
+	ctx.fillStyle = "#FF0000";
+	ctx.fillRect(catx*20,caty*20,10,10);
+}
 	
 function run()
 {
 	if(!running)
 	{
 		tilePuzzleBox();
+		var c=document.getElementById("myCanvas");
+		ctx=c.getContext("2d");
 		resetCat();
 		setgrid(catx,caty,oldcolor);
 		startCat();
@@ -226,17 +252,20 @@ function runCat()
 		{
 			catRules[theView]=3;
 			consecTurns=0;
+			markChange();
 		}
 		if (catMoves>MOVELIMIT)
 		{
 			catMoves=0;
 			catRules[theView]=randomAction();
+			markChange();
 			
 		}
 		if (catRules[theView]==0) //action not learned
 		{
 			console.log("learning new rule");
 			catRules[theView]=randomAction();
+			markChange();
 			console.log("Action is "+catRules[theView]+" for "+theView);
 		}
 		if (catRules[theView]==1)
@@ -254,6 +283,7 @@ function runCat()
 			tryToMoveCat(theView);
 			consecTurns=0;
 		}
+		drawMove();
 		catMoves=catMoves+1;
 		totalMoves=totalMoves+1;
 		setTimeout("runCat();",10);
@@ -263,7 +293,7 @@ function runCat()
 function atDoor()
 {
 	var DOOR=SIDE-3;
-	var DOORWIDTH=3;
+	var DOORWIDTH=2;
 	//console.log("DOOR is "+DOOR);
 	//var value= ((catx==DOOR)&&(caty==DOOR));
 	value= (catx<=DOOR)&&(catx>=DOOR-DOORWIDTH)&&(caty<=DOOR)&&(caty>=DOOR-DOORWIDTH);
@@ -299,6 +329,7 @@ function tryToMoveCat(view)
 	{
 		console.log("illegal move");
 		catRules[view]=randomTurn();
+		markChange();
 		console.log("Action is "+catRules[view]+" for "+view);
 		if (catRules[view]==1)
 			turnRight();
@@ -323,6 +354,7 @@ function postDatum(string)
 <H2>Guthrie's Cat</H2>
 Press the run/stop button to start or stop the cat. Press the reset button to start over with a new puzzle box.
 <p>
+<canvas id="myCanvas" width="260" height="260" style="border:1px solid #d3d3d3;">
 
 <div id="data"></div>
 

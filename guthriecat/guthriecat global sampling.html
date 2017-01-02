@@ -1,0 +1,398 @@
+<html>
+<head>
+		<title>Guthrie's Cat</title>
+		
+</head>
+<body>
+<script language="JavaScript" type="text/javascript">
+<!--
+//use globally defined state and actions
+//for actions: n e s w 1 2 3 4
+//no heading
+//for state: 0,1,2 for each of 9 neighbors
+//no barrier to see if learns to get through
+//but does not stop when stable
+//see notes on hash version
+//in this version when a max number of moves is made, a random change is made
+//to the last rule, corresponding to guthrie's fatigue notion
+//state consists of last n moves and current view
+//have four actions 0:nothing (not learned), 1: turn rt 2: turn left 3: move
+
+
+
+var SIDE=13;
+var HISTLEN=0;
+var ltblue="ltblue5f.JPG";
+var red="red5f.JPG";
+var blue="blue5.JPG";
+var black="black5.JPG";
+
+var START=0;
+
+var TRIALS=500;
+var escapes=0;
+
+
+var running=false;
+var catx=0;
+var caty=0;
+var totalMoves;
+
+
+var PNOISE=.1;
+var catRules=[];
+var catHistory="";
+
+var oldcolor=red;
+var dx=[0,1,0,-1];
+var dy=[-1,0,1,0];
+
+
+var shadowgrid=[];
+var gridn=0;
+var ctxs=[];
+var currentCtx;
+
+var NFEATURES=100;
+var FEATUREPROB=.1;
+var featureLists=[];
+
+for(var j=0;j<SIDE;j++)
+{
+	for(var i=0;i<SIDE;i++)
+	{
+		document.write("<img src='red5f.JPG'>");
+		shadowgrid[gridn]=red;
+		gridn=gridn+1;
+	}
+	document.write("<br>");
+}
+function placeBarrier()
+{
+	//barrier with one hole
+	for (var i=0;i<SIDE;i++)
+		setgrid(4,i,black);
+	setgrid(4,6,red);
+}
+
+function setFeatures()
+{
+	//create pool with random actions
+	for(var n=0;n<NFEATURES;n++)
+		catRules[n]=randomAction();
+	//assign sample of features to each cell
+	for(var c=0;c<SIDE*SIDE;c++)
+	{
+		featureLists[c]=[];
+		for(var f=0;f<NFEATURES;f++)
+		{
+			var r=Math.random();
+			if (r<FEATUREPROB)
+				featureLists[c].push(f);
+		}
+	}
+}
+
+
+
+function startCat()
+{	
+	catx=START; 
+	caty=catx;
+	oldcolor=getgrid(catx,caty);
+	setgrid(catx,caty,ltblue);//cat color	
+	catHistory="";
+	totalMoves=0;
+	stable=true;
+	currentCtx=(currentCtx+1)%3;
+	startPlot();
+}
+function resetCat()
+{
+	catrules=[];
+	setFeatures();
+	catHistory="";
+	currentCtx=2;
+	
+}
+function updatecatHistory(move)
+{
+	catHistory=catHistory+move;
+	if (catHistory.length>HISTLEN)
+		catHistory=catHistory.slice(1,HISTLEN+1);
+}
+
+function viewBit(x,y)
+{
+	if ((x<0)||(y<0)||(x>SIDE-1)||(y>SIDE-1))
+		return "0"; //wall
+	else if(getgrid(x,y)==black)
+		return "0";
+	else return "1";
+}
+
+
+
+function setgrid(x,y,color)
+{
+	//console.log("setting "+x+":"+y+" to "+color);
+	document.images[y*SIDE+x].src=color;
+	shadowgrid[y*SIDE+x]=color;
+}
+function getgrid(x,y)
+{
+	return shadowgrid[y*SIDE+x];
+}
+function startPlot()
+{
+	
+	ctxs[currentCtx].clearRect(0,0,260,260);
+	ctxs[currentCtx].beginPath();
+	ctxs[currentCtx].moveTo(20*START,20*START);
+
+}
+
+function drawMove()
+{
+	ctxs[currentCtx].lineTo(20*catx,20*caty);
+	ctxs[currentCtx].stroke();
+}
+function markChange()
+{
+	ctxs[currentCtx].fillStyle = "#FF0000";
+	ctxs[currentCtx].fillRect(catx*20,caty*20,10,10);
+}
+	
+function markEscape()
+{
+	ctxs[currentCtx].fillStyle = "#00FF00";
+	ctxs[currentCtx].fillRect(catx*20,caty*20,10,10);
+}
+function run()
+{
+	if(!running)
+	{
+		//placeBarrier();
+		var c=document.getElementById("myCanvas0");
+		ctxs[0]=c.getContext("2d");
+		c=document.getElementById("myCanvas1");
+		ctxs[1]=c.getContext("2d");
+		c=document.getElementById("myCanvas2");
+		ctxs[2]=c.getContext("2d");
+		resetCat();
+		setgrid(catx,caty,oldcolor);
+		startCat();
+		running=true;
+		runCat();
+	}
+	else
+		running=false;
+}
+function chooseMove(theCell)
+{
+	console.log("::::::::::choosing:::::::::::");
+	//count features that are bound to actions
+	//set counts for illegal actions to -1
+	//get total counts for legal actions
+	//if total counts >0 prob of move=count for move/total counts
+	//else choose randomly among legal moves
+	var featureCounts=[0,0,0,0];
+	for(var f=0;f<featureLists[theCell].length;f++)
+		featureCounts[catRules[featureLists[theCell][f]]-1]++;
+	for (var m=0;m<4;m++)
+		if(!isLegal(m+1))
+			featureCounts[m]=-1;
+	var totalCounts=0;
+	for (var m=0;m<4;m++)
+		if (featureCounts[m]>-1)
+			totalCounts+=featureCounts[m];
+	console.log("feature counts: "+featureCounts+" total counts: "+totalCounts);
+	if (totalCounts==0)
+	 	return chooseRandomMove(featureCounts);
+	return chooseMoveWeighted(featureCounts,totalCounts);
+}
+function ithLegalMove(i,featureCounts)
+{
+	//assume valid i
+	//note returns the action, not the index of the action
+	var index=-1;
+	var n=0;
+	while(index!=i)
+	{
+		if(featureCounts[n]>-1)
+			index++;
+		n++;
+	}
+	return n;
+}
+function numPoss(featureCounts)
+{
+	numP=0;
+	for(var m=0;m<4;m++)
+		if (featureCounts[m]>-1)
+			numP++;
+	return numP;
+}
+	
+function chooseRandomMove(featureCounts)
+{	
+	var numP=numPoss(featureCounts);
+	
+	var bar=0;
+	var delta=1.0/numP;
+	var r=Math.random();
+	for (var p=0;p<numP;p++)
+	{
+		bar=bar+delta;
+		if (r<bar)
+		{
+			var theMove=ithLegalMove(p,featureCounts);
+			console.log("action is "+theMove);
+			return theMove; 
+		}
+	}
+}
+function chooseMoveWeighted(counts,total)
+{
+	var numP=numPoss(counts);
+	console.log("numP: "+numP);
+	var bar=0;
+	var r=Math.random();
+	for (var p=0;p<4;p++)
+	{
+		if (counts[p]>-1)
+		{
+			bar=bar+(1.0*counts[p])/total;
+			console.log("bar is "+bar);
+			if (r<=bar)
+				return p+1; //actions start at 1
+		}
+	}
+	console.log("no move chosen");
+}
+
+
+function randomAction()
+{
+	var rand=Math.random();
+	var bar=.25;
+	for(var action=1;action<5;action++)
+	{
+		if (rand<=bar)
+		{
+			console.log("Random action is "+action);
+			return action;
+		}
+		bar=bar+.25;
+	}
+}
+
+		
+
+
+function runCat()
+{
+	
+	if(running)
+	{
+		
+		console.log("at "+catx+" , "+caty);
+	
+		if (atDoor())
+		{
+			markEscape();
+			//alert("Escaped! after "+totalMoves+" moves.");
+			escapes=escapes+1;
+			console.log("Escapes no. "+escapes);
+			if (escapes>=TRIALS)
+			{
+				tilePuzzleBox();
+				//placeBarrier();
+				escapes=0;
+				//resetCat();
+				//startCat();
+				return;
+
+			}
+			postDatum(totalMoves+",");
+			setgrid(catx,caty,oldcolor);
+			startCat();
+		
+		}
+		var theCell=caty*SIDE+catx;
+		console.log("cell is "+theCell);
+		
+		
+		
+		//making a move
+		totalMoves++;
+		var theMove=chooseMove(theCell);
+		updateAssocs(theCell,theMove);
+		updatecatHistory(theMove);
+		if(Math.random()<PNOISE)
+		{
+			markChange();
+			do
+				theMove=randomAction();
+			while (!isLegal(theMove));
+		}
+		move(theMove);
+		setTimeout("runCat();",10);
+	
+	} 	
+}
+function atDoor()
+{
+	var DOOR=SIDE-2;
+	var DOORWIDTH=4;
+	value= (catx<=DOOR)&&(catx>=DOOR-DOORWIDTH)&&(caty<=DOOR)&&(caty>=DOOR-DOORWIDTH);
+	//console.log(catx+","+caty+","+value);
+	return value;
+}
+function updateAssocs(c,m)
+{
+	var features=featureLists[c];
+	for(var f=0;f<features.length;f++)
+		catRules[features[f]]=m;
+}
+function move(aMove)
+{
+	var newCatX=catx+dx[aMove-1];
+	var newCatY=caty+dy[aMove-1];
+	
+	console.log("moving "+aMove);
+	setgrid(catx,caty,oldcolor);
+	oldcolor=getgrid(newCatX,newCatY);
+	catx=newCatX;
+	caty=newCatY;
+	setgrid(catx,caty,ltblue);
+	drawMove();
+}
+function isLegal(aMove)
+{
+	var newCatX=catx+dx[aMove-1];
+	var newCatY=caty+dy[aMove-1];
+	return !(viewBit(newCatX,newCatY)==0);
+}
+function postDatum(string)
+{
+	var div=document.getElementById("data");
+	div.innerHTML+=string;
+}
+
+//-->
+</script>
+<input type="button" value="run" onclick="run()">
+<H2>Guthrie's Cat</H2>
+<p>
+<canvas id="myCanvas0" width="260" height="260" style="border:1px solid #d3d3d3;">
+</canvas>
+<canvas id="myCanvas1" width="260" height="260" style="border:1px solid #d3d3d3;">
+</canvas>
+<canvas id="myCanvas2" width="260" height="260" style="border:1px solid #d3d3d3;">
+</canvas>
+<div id="data"></div>
+
+
+</body>
+</html>

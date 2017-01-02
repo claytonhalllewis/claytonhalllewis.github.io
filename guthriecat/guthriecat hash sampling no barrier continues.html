@@ -1,0 +1,437 @@
+<html>
+<head>
+		<title>Guthrie's Cat</title>
+		
+</head>
+<body>
+<script language="JavaScript" type="text/javascript">
+<!--
+//stimulus sampling
+//no barrier to see if learns to get through
+//but does not stop when stable
+
+//see notes on hash version
+//
+//state consists of last n moves and current view
+//have three actions 1: turn rt 2: turn left 3: move
+
+
+var escapes;
+
+var TRIALS=100;
+var SIDE=13;
+var HISTLEN=4;
+var VIEWHALFWIDTH=4; //cat sees 2*VIEWWIDTH+1 cells in front
+var ltblue="ltblue5f.JPG";
+var red="red5f.JPG";
+var blue="blue5.JPG";
+var black="black5.JPG";
+
+var START=0;
+
+
+var running=false;
+
+var catx=0;
+var caty=0;
+var heading;
+
+var totalMoves;
+
+
+var catRules={};
+var catHistory;
+
+var oldcolor=red;
+var dx=[0,1,0,-1];
+var dy=[-1,0,1,0];
+
+
+var shadowgrid=[];
+var gridn=0;
+var ctxs=[];
+var currentCtx;
+
+for(var j=0;j<SIDE;j++)
+{
+	for(var i=0;i<SIDE;i++)
+	{
+		document.write("<img src='ltblue5f.jpg'>");
+		shadowgrid[gridn]=ltblue;
+		gridn=gridn+1;
+	}
+	document.write("<br>");
+}
+function placeBarrier()
+{
+	//barrier with one hole
+	for (var i=0;i<SIDE;i++)
+		setgrid(4,i,black);
+	setgrid(4,6,red);
+}
+
+function tilePuzzleBox()
+{
+	for(var j=0;j<SIDE;j++)
+		for(var i=0;i<SIDE;i++)
+			setgrid(i,j,randomTile());
+}
+function randomTile()
+{
+	if (Math.floor((Math.random() * 2))==0)
+		return red;
+	else return blue;
+}
+function randomAction()
+{
+	//stable=false; //a rule has changed
+	var PROBMOVE=.5;
+	var PROBL=(1-PROBMOVE)/2;
+	var p=Math.random();
+	if (p<PROBMOVE)
+		return 3;
+	if (p<PROBMOVE+PROBL)
+		return 2;
+	return 1;
+}
+function randomActionAssocs()
+{
+	var viewLen=2*VIEWHALFWIDTH+1;
+	for(var f=0;f<viewLen;f++)
+	{
+		catRules[f+"#0"]=randomAction();
+		catRules[f+"#1"]=randomAction();
+		catRules[f+"#2"]=randomAction();
+	}
+	for(var f=0;f<HISTLEN;f++)
+	{	
+		catRules[(f+viewLen)+"#1"]=randomAction();
+		catRules[(f+viewLen)+"#2"]=randomAction();
+		catRules[(f+viewLen)+"#3"]=randomAction();
+	}
+	logRules();
+}
+
+
+
+function startCat()
+{	
+	catx=START; 
+	caty=catx;
+	heading =1; //0 north 1 east 2 south 3 west
+	oldcolor=getgrid(catx,caty);
+	setgrid(catx,caty,ltblue);//cat color	
+	catHistory="3333";
+	currentCtx=(currentCtx+1)%3;
+	startPlot();
+	totalMoves=0;
+}
+function resetCat()
+{
+	randomActionAssocs();
+	currentCtx=2;
+	escapes=0;
+	
+}
+function updatecatHistory(move)
+{
+	catHistory=catHistory+move;
+	if (catHistory.length>HISTLEN)
+		catHistory=catHistory.slice(1,HISTLEN+1);
+	console.log("hist is "+catHistory);
+}
+function catView()
+{
+	//returns a string of 2*VIEWIDTH+1 symbols
+	// coding the tiles the cat sees
+	//taking red as 2 and blue as 1, wall as 0
+	var dir=(heading+1)%4; //direction of line of tiles cat sees
+	var catViewX=catx+dx[heading]-VIEWHALFWIDTH*dx[dir];
+	var catViewY=caty+dy[heading]-VIEWHALFWIDTH*dy[dir];
+	var view="";
+	for (var i=0;i<(2*VIEWHALFWIDTH+1);i++)
+	{
+		view=view+viewBit(catViewX,catViewY);
+		catViewX=catViewX+dx[dir];
+		catViewY=catViewY+dy[dir];
+	}
+	return view;
+}
+
+function viewBit(x,y)
+{
+	if ((x<0)||(y<0)||(x>SIDE-1)||(y>SIDE-1))
+		return "0"; //wall
+	if (getgrid(x,y)==red)
+		return "2";
+	else if(getgrid(x,y)==black)
+		return "0";
+	else return "1";
+}
+function catState()
+{
+	return catView()+catHistory;
+}
+
+
+function setgrid(x,y,color)
+{
+	//alert("setting "+x+":"+y+" to "+color);
+	document.images[y*SIDE+x].src=color;
+	shadowgrid[y*SIDE+x]=color;
+}
+function getgrid(x,y)
+{
+	return shadowgrid[y*SIDE+x];
+}
+function startPlot()
+{
+	
+	ctxs[currentCtx].clearRect(0,0,260,260);
+	ctxs[currentCtx].beginPath();
+	ctxs[currentCtx].moveTo(20*START,20*START);
+
+}
+
+function drawMove()
+{
+	ctxs[currentCtx].lineTo(20*catx,20*caty);
+	ctxs[currentCtx].stroke();
+}
+function markChange()
+{
+	ctxs[currentCtx].fillStyle = "#FF0000";
+	ctxs[currentCtx].fillRect(catx*20,caty*20,10,10);
+}
+	
+function markEscape()
+{
+	ctxs[currentCtx].fillStyle = "#00FF00";
+	ctxs[currentCtx].fillRect(catx*20,caty*20,10,10);
+}
+function run()
+{
+	if(!running)
+	{
+		tilePuzzleBox();
+		//placeBarrier();
+		var c=document.getElementById("myCanvas0");
+		ctxs[0]=c.getContext("2d");
+		c=document.getElementById("myCanvas1");
+		ctxs[1]=c.getContext("2d");
+		c=document.getElementById("myCanvas2");
+		ctxs[2]=c.getContext("2d");
+		resetCat();
+		setgrid(catx,caty,oldcolor);
+		startCat();
+		running=true;
+		runCat();
+	}
+	else
+		running=false;
+}
+
+function chooseMove(theState)
+{
+	console.log("::::::::::choosing:::::::::::");
+	//determine legal moves (turns are always legal)
+	//for legal moves, count features that are bound to them
+	//if total counts >0 prob of move=count for move/total counts
+	//else choose randomly
+	var featureCounts=[0,0,0];
+	var numPossibleMoves;
+	if (moveIsLegal())
+		numPossibleMoves=3;		
+	else numPossibleMoves=2; //move not legal
+	for (var feature=0;feature<theState.length;feature++)
+	{
+		var action=getAction(feature+"#"+theState[feature]);
+		if (action>-1)
+			featureCounts[action-1]++;
+	}
+	console.log(featureCounts);
+	var totalCounts=0;
+	for (var move=0;move<numPossibleMoves;move++)
+		totalCounts=totalCounts+featureCounts[move];
+	if (totalCounts==0)
+	 	return chooseRandomMove(numPossibleMoves);
+	return chooseMoveWeighted(numPossibleMoves,featureCounts,totalCounts);
+}
+function getAction(feature)
+{
+	if (!catRules.hasOwnProperty(feature)) //action not learned
+		return -1;
+	return catRules[feature];
+}
+	
+function chooseRandomMove(numPoss)
+{
+	var bar=0;
+	var delta=1.0/numPoss;
+	var r=Math.random();
+	for (var p=0;p<numPoss;p++)
+	{
+		bar=bar+delta;
+		if (r<bar)
+		{
+			console.log("action is "+(p+1));
+			return p+1; //actions start at 1
+		}
+	}
+}
+function chooseMoveWeighted(numPoss,counts,total)
+{
+	var bar=0;
+	var r=Math.random();
+	for (var p=0;p<numPoss;p++)
+	{
+		bar=bar+(1.0*counts[p])/total;
+		if (r<bar)
+			return p+1; //actions start at 1
+	}
+}
+function updateRules(state,move)
+{
+	console.log("updating with action "+move);
+	//logRules();
+	for(var f=0;f<state.length;f++)
+	{
+		var index=f+"#"+state[f];
+		//console.log(index);
+		catRules[index]=move;
+		//logRules();
+	}
+	logRules();
+	//alert("check rules");
+}	
+function logRules()
+{
+	for(var key in catRules)
+	{
+		console.log(key+":"+catRules[key]);
+	}
+	console.log("end");
+}
+
+
+function runCat()
+{
+	
+	if(running)
+	{
+		
+		console.log("at "+catx+" , "+caty);
+	
+		if (atDoor())
+		{
+			markEscape();
+			//alert("Escaped! after "+totalMoves+" moves.");
+			escapes=escapes+1;
+			if (escapes>=TRIALS)
+			{
+				tilePuzzleBox();
+				//placeBarrier();
+				escapes=0;
+				//resetCat();
+				//startCat();
+				return;
+
+			}
+			postDatum(totalMoves+",");
+			
+			setgrid(catx,caty,oldcolor);
+			startCat();
+	
+		}
+		var theState=catState();
+		console.log("state is "+theState);
+
+		
+		//making a move
+
+		
+		totalMoves++;
+		var theMove=chooseMove(theState);
+		updateRules(theState,theMove);
+		updatecatHistory(theMove);
+		if (theMove==1)
+		{
+			turnRight();
+			
+		}
+		else if (theMove==2)
+		{
+			turnLeft();
+		}
+		else if (theMove==3)
+		{
+			moveCat(theState);
+		}
+		setTimeout("runCat();",10);
+	
+	} 	
+}
+function atDoor()
+{
+	var DOOR=SIDE-2;
+	var DOORWIDTH=4;
+	value= (catx<=DOOR)&&(catx>=DOOR-DOORWIDTH)&&(caty<=DOOR)&&(caty>=DOOR-DOORWIDTH);
+	//console.log(catx+","+caty+","+value);
+	return value;
+}
+function turnLeft()
+{
+	console.log("turning left");
+	if (heading == 0)
+		heading =3;
+	else heading=heading-1;
+}
+function turnRight()
+{
+	console.log("turning right");
+	heading = (heading+1)%4;
+}
+function moveIsLegal()
+{
+	var newCatX=catx+dx[heading];
+	var newCatY=caty+dy[heading];	
+	return isLegal(newCatX,newCatY);
+}
+function moveCat(view) 
+{
+	var newCatX=catx+dx[heading];
+	var newCatY=caty+dy[heading];	
+	setgrid(catx,caty,oldcolor);
+	oldcolor=getgrid(newCatX,newCatY);
+	catx=newCatX;
+	caty=newCatY;
+	setgrid(catx,caty,ltblue);
+	drawMove();
+}
+	
+function isLegal(x,y)
+{
+	return !(viewBit(x,y)==0);
+}
+function postDatum(string)
+{
+	var div=document.getElementById("data");
+	div.innerHTML+=string;
+}
+
+//-->
+</script>
+<input type="button" value="run" onclick="run()">
+<H2>Guthrie's Cat</H2>
+<p>
+<canvas id="myCanvas0" width="260" height="260" style="border:1px solid #d3d3d3;">
+</canvas>
+<canvas id="myCanvas1" width="260" height="260" style="border:1px solid #d3d3d3;">
+</canvas>
+<canvas id="myCanvas2" width="260" height="260" style="border:1px solid #d3d3d3;">
+</canvas>
+<div id="data"></div>
+
+
+</body>
+</html>
