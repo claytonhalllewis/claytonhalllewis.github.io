@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head> 
+<title>electric field sonification</title>
+<script src="say.js"></script>
+<script src="cursorPosition2cursors.js"></script>
+<script src="computeField.js"></script>
+<script src="HWKsonify2cursors.js"></script>
+<script src="maketoneHWK2cursors.js"></script>
+<script src="spatialUI2cursors.js"></script>
+<script src="keyboardHandler2cursors.js"></script>
+<script type="text/javascript">
+document.onkeydown=handleKey;
+</script>
+</head>
+<body>
+<audio id="click">
+  <source src="adriantnt_u_click.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
+</audio>
+
+
+<div id="liveRegion" aria-live="polite">         
+</div>
+<h1>Simulation of electric field, with auditory representation.</h1>
+Press ? for instructions.
+<h2>Overview</h2>
+<div id="overview"></div>
+<h2>Representing amplitude and orientation</h2>
+<div id="coding"></div>
+<h2>Motion of the charge</h2>
+<div id="motion"></div>
+<h2>Acknowledgements</h2>
+<div id="ack"></div>
+<h2>Contact</h2>
+<div id="contact"></div>
+<script type="text/javascript">
+var div=document.getElementById("overview");
+div.innerHTML=summary;
+div=document.getElementById("coding");
+div.innerHTML=coding;
+div=document.getElementById("motion");
+div.innerHTML=motion;
+div=document.getElementById("ack");
+div.innerHTML=ack0+hwkWritten+ack1;
+div=document.getElementById("contact");
+div.innerHTML=contact;
+</script>
+
+</body>
+</html>
