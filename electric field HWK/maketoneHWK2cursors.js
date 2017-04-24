@@ -32,7 +32,7 @@ function initSoundSystem()
     }
     soundSystem.setAmp=function(a)
     {
-        a=Math.min(a,.75);
+        //a=Math.min(a,.75); //remove clip
         gainNode.gain.value=a;
     }
     setupShepardSystem(soundSystem);
@@ -73,8 +73,8 @@ function setupShepardSystem(ss)
 }
 function playTone(freq,amp,p) 
 {
-     console.log("freq "+freq);
-     //alert("amp "+amp);
+     //console.log("freq "+freq);
+     console.log("amp "+amp);
      mySoundSystems[p].setFreq(freq);
      mySoundSystems[p].setAmp(amp);
 }

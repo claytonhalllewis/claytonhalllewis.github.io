@@ -1,25 +1,33 @@
 const UI=
-[{name: "voicing tab", type: "list", list:[{name:"screen reader", type:"fn", fn:setScreenReader},
-					{name:"self voicing", type: "fn", fn:setSelfVoicing}]},
+[{name: "voicing tab", type: "list", list:
+        [
+        {name:screenreader, type:"nfn", fn:setScreenReader},
+		{name:selfvoicing, type: "nfn", fn:setSelfVoicing}
+        ]},
  {name:"start stop tab",type: "list", list:[{name: toggleFirst, type: "nfn", fn: toggleFirstProbe},
-                                    {name:toggleSecond,type: "nfn",fn:toggleSecondProbe}]},
+                                    {name:toggleSecond,type: "nfn",fn:toggleSecondProbe}
+                                    ]},
  {name:"move tab", type: "list", list: [{name:"first probe move", type: "fn",fn:moveFirstProbe},
                     {name: "second probe move", type: "fn",fn:moveSecondProbe},
                     {name:"announce",type:"fn", fn:announcePosition},
-					{name:"reset",type:"fn", fn: resetProbe}]},
- {name:"orientation coding tab", type: "list", list:[{name:"compass", type: "fn", fn:setCompassCoding},
-						{name:"Shepard", type: "fn", fn:setShepardCoding}]},
- {name: "charge motion tab", type: "list", list:[{name: "stationary", type: "fn", fn: setStationaryMotion},
-						{name:"horizontal", type: "fn", fn:setHorizontalMotion},
-						{name:"vertical", type: "fn", fn:setVerticalMotion},
-						{name:"circular", type:"fn", fn:setCircularMotion}]}
+					{name:"reset",type:"fn", fn: resetProbe}
+                    ]},
+ {name:"orientation coding tab", type: "list", list:[{name:compass, type: "nfn", fn:setCompassCoding},
+						{name:shepard, type: "nfn", fn:setShepardCoding},
+                        {name:amponly, type:"nfn", fn:setAmpOnly}
+                        ]},
+ {name: "charge motion tab", type: "list", list:[{name:circular, type:"nfn", fn:setCircularMotion},
+                        {name: stationary, type: "nfn", fn: setStationaryMotion},
+						{name:horizontal, type: "nfn", fn:setHorizontalMotion},
+						{name:vertical, type: "nfn", fn:setVerticalMotion}
+						]}
  
 ];
 //types indicate whether item is a list, a function with a simple name (fn) or a function whose name
 //must be obtained by calling a function (nfn) because the name is state dependent
 var loc=[0];
 var mode="menu";//menu, probe
-var audible=[false,false]; //audibility of probesa
+var audible=[false,false]; //audibility of probes
 var probe; //probe being moved: 0 or 1
 
 

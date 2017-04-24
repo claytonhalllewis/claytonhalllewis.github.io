@@ -3,7 +3,7 @@ const INITPROBE=5000;
 
 var PT=[{x:INITPROBE,y:INITPROBE},{x:INITPROBE,y:INITPROBE}];
 
-const PROBEDELTA=500; //movement increment for probes
+const PROBEDELTA=1000; //movement increment for probes was 500
 
 function moveFirstProbe()
 {

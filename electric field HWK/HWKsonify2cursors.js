@@ -1,7 +1,7 @@
 //sonify at HWK
 
 var t=0;
-var orientationCoding;
+var orientationCoding="clock";
 var running="never";
 var drawCtx;
 function toggleRun()
@@ -48,7 +48,7 @@ function toggleProbe(p)
 			mySoundSystems[i]=initSoundSystem();
 		setCompassCoding();
 		running=true;
-		clickElement = document.getElementById("click"); 
+		
 		
 		sonifyField(); //nb call this just once... control afterwards by setting gain
 	}
@@ -61,6 +61,27 @@ function toggleProbe(p)
 	}
 	//running=!running;
 	//sonifyField();
+}
+var compass=function()
+{
+	var text="compass";
+	if(orientationCoding=="clock")
+		text=text+" selected "
+	return text;
+}
+var shepard=function()
+{
+	var text="shepard";
+	if(orientationCoding=="shepard")
+		text=text+" selected "
+	return text;
+}
+var amponly=function()
+{
+	var text="amplitude only";
+	if(orientationCoding=="amponly")
+		text=text+" selected "
+	return text;
 }
 
 setCompassCoding=function()
@@ -78,6 +99,13 @@ setShepardCoding=function()
 		for(var i=0;i<2;i++)
 			mySoundSystems[i].startShepMode();
 	//say("shepard");
+}
+setAmpOnly=function()
+{
+	orientationCoding="amponly";
+	if(running==true)
+		for(var i=0;i<2;i++)
+			mySoundSystems[i].endShepMode();
 }
 
 function sonifyField() 
@@ -131,15 +159,20 @@ function playFieldTone(t,p)
 	//plotAngle(t,findAngle(e));
 	if(orientationCoding=="clock")
 	{
-		playTone(makeFreq(findAngle(e),p),3*makeAmp(vLen(e)),p); //only one voice vs 3 for shep
+		playTone(makeFreq(findAngle(e),p),3*makeAmp(vLen(e),p),p); //only one voice vs 3 for shep
 		return;
 	}
-    playShepTone(findAngle(e),makeAmp(vLen(e)),p);
+	else if (orientationCoding=="amponly")
+	{
+		playTone(makeFreq(Math.PI,p),3*makeAmp(vLen(e),p),p); //only one voice vs 3 for shep
+		return;
+	}
+    playShepTone(findAngle(e),makeAmp(vLen(e),p),p);
 }
 function findAngle(v)
 {
 	var a=Math.atan2(v.y,v.x)+Math.PI;
-	console.log("angle is "+a);
+	//console.log("angle is "+a);
 	return a;
 	
 }
@@ -156,13 +189,27 @@ function makeFreq(angle,p)
 		freq=4*freq; //2 octaves higher
 	return freq;
 }
-function makeAmp(len)
+/*
+function makeAmp(len,p)
 {
 	const maxLen=1e-8;  //1e-4
 	var amp=len/maxLen;
-	//console.log("amp "+amp);
+	console.log("raw amp "+amp);
+	amp=(1/14)*(Math.log(amp)+2); //logarithmic scaling for dynamic range
+	console.log("amp "+amp);
 	return amp;
 }
+*/
+function makeAmp(len,p)
+{
+	const CAP=1e-6;
+	console.log("len is ",len);
+	len=Math.min(CAP,len);
+	amp=3e7*(len-.75/(Math.pow(vLen(PT[p])+1,2)));
+	console.log("amp "+amp);
+	return amp;
+}
+
 function testSound()
 {
 	playTone(440,.5);

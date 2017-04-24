@@ -15,6 +15,20 @@ say=function(msg)
 	u.text=msg;
 	window.speechSynthesis.speak(u);
 }
+var screenreader=function()
+{
+	var text="screen reader";
+	if(VoiceMode=="screenReader")
+		text=text+" selected "
+	return text;
+}
+var selfvoicing=function()
+{
+	var text="self voicing";
+	if(VoiceMode=="selfVoicing")
+		text=text+" selected "
+	return text;
+}
 var setSelfVoicing=function()
 {
 	VoiceMode="selfVoicing";

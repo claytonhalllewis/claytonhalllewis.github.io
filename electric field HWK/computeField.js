@@ -51,9 +51,10 @@ function r(p,t) //distance from charge to point at time t
 var chargeMotion="circular";
 function q(t) //position of moving charge at time t
 {
-	var AMP=20; //amplitude of oscillation of q 
+	const AMP=20; //amplitude of oscillation of q 
 	//charge  can move in a circle, oscillate horizontally or vertically,
 	//or be stationary
+	const SPEED=2; //rotational speed
         var that={x:0,y:0};
 	if (chargeMotion=="stationary")
 	{
@@ -61,18 +62,46 @@ function q(t) //position of moving charge at time t
 	}
     if (chargeMotion=="horizontal")
 	{
-		that.x=AMP*Math.cos(t);
+		that.x=AMP*Math.cos(t*SPEED);
 		return that;
         }
 	if (chargeMotion=="vertical")
 	{
-		that.y=AMP*Math.sin(t);
+		that.y=AMP*Math.sin(t*SPEED);
 		return that;
     }
 	//circular
 	that.x=AMP*Math.cos(t);
 	that.y=AMP*Math.sin(t);
 	return that;
+}
+var circular=function()
+{
+	var text="circular";
+	if(chargeMotion=="circular")
+		text=text+" selected "
+	return text;
+}
+var horizontal=function()
+{
+	var text="horizontal";
+	if(chargeMotion=="horizontal")
+		text=text+" selected "
+	return text;
+}
+var vertical=function()
+{
+	var text="vertical";
+	if(chargeMotion=="vertical")
+		text=text+" selected "
+	return text;
+}
+var stationary=function()
+{
+	var text="stationary";
+	if(chargeMotion=="stationary")
+		text=text+" selected "
+	return text;
 }
 function setStationaryMotion()
 {
