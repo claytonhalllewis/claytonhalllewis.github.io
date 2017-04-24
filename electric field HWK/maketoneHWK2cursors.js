@@ -23,7 +23,15 @@ function initSoundSystem()
     //oscillator.frequency.value = 220;
     var gainNode = ctx.createGain();
     oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
+    soundSystem.panner=ctx.createPanner();
+    soundSystem.panner.panningModel = 'HRTF';
+    soundSystem.panner.distanceModel = 'linear';
+    soundSystem.panner.refDistance = 500;
+    soundSystem.panner.maxDistance = 20000;
+    soundSystem.panner.rolloffFactor = 5;
+    soundSystem.panner.positionX.value=0;
+    gainNode.connect(soundSystem.panner);
+    soundSystem.panner.connect(ctx.destination);
     gainNode.gain.value=0;
     oscillator.start(0);
     soundSystem.setFreq=function(f)
@@ -34,6 +42,10 @@ function initSoundSystem()
     {
         //a=Math.min(a,.75); //remove clip
         gainNode.gain.value=a;
+    }
+    soundSystem.setX=function(x)
+    {
+        soundSystem.panner.positionX.value=x;
     }
     setupShepardSystem(soundSystem);
     return soundSystem;
@@ -48,7 +60,7 @@ function setupShepardSystem(ss)
         ssNodes[i].osc=ctx.createOscillator();
         ssNodes[i].gain=ctx.createGain();
         ssNodes[i].osc.connect(ssNodes[i].gain);
-        ssNodes[i].gain.connect(ctx.destination);
+        ssNodes[i].gain.connect(ss.panner);
         ssNodes[i].gain.gain.value=0;
         ssNodes[i].osc.start();
     }
@@ -58,7 +70,7 @@ function setupShepardSystem(ss)
     }
     ss.setShepAmp=function(i,a)
     {
-        a=Math.min(a,.5);
+        //a=Math.min(a,.5);
         ssNodes[i].gain.gain.value=a;
     }
     ss.startShepMode=function()
@@ -71,10 +83,23 @@ function setupShepardSystem(ss)
             ss.setShepAmp(i,0);
     }
 }
+/*
+var panner = audioCtx.createPanner();
+panner.panningModel = 'HRTF';
+panner.distanceModel = 'linear';
+panner.refDistance = 500;
+panner.maxDistance = 20000;
+panner.rolloffFactor = 5;
+
+panner.positionX.value = x;
+*/
+
+
 function playTone(freq,amp,p) 
 {
      //console.log("freq "+freq);
-     console.log("amp "+amp);
+    //console.log("final amp "+amp);
+     mySoundSystems[p].setX(PT[p].x);
      mySoundSystems[p].setFreq(freq);
      mySoundSystems[p].setAmp(amp);
 }
@@ -142,13 +167,14 @@ function shepFreq2(angle,p)
     //var A=[50,300][p]; //select base freq
     var freq =A*Math.exp(angle*B);
     if(p==1)
-        freq=4*freq;
+        freq=2*freq;
     return freq;
 }
 
 function playShepTone(angle,amp,p)
 {
     //console.log("angle is "+angle);
+    mySoundSystems[p].setX(PT[p].x);
     for(var i=0;i<mySoundSystems[p].NST;i++)
     {
         var thisAngle=shifted(angle,i*2*Math.PI/mySoundSystems[p].NST)

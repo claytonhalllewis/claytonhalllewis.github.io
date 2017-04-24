@@ -1,9 +1,9 @@
-const INITPROBE=5000;
+const INITPROBE=4500;
 
 
 var PT=[{x:INITPROBE,y:INITPROBE},{x:INITPROBE,y:INITPROBE}];
 
-const PROBEDELTA=1000; //movement increment for probes was 500
+const PROBEDELTA=1500; //setting to as to avoid getting too close to 0
 
 function moveFirstProbe()
 {

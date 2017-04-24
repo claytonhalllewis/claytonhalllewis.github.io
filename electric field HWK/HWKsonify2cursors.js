@@ -104,32 +104,7 @@ function sonifyField()
 		setTimeout("sonifyField()",kDelay); //allow time for tone(s) to play						//while program is running
 	}
 }
-function plotAngle(t,a)
-{
-	drawCtx.fillStyle="#FFFFFF";
-	drawCtx.fillRect((10*t)%700,700-100*a,2,2);
-}
-function plotVec(v)
-{
-	drawCtx.moveTo(350,350);
-	var s=1e6;
-	console.log("e.x: "+v.x);
-	drawCtx.lineTo(350+s*v.x,350-s*v.y);
-	//drawCtx.lineTo(100,100);
-	drawCtx.strokeStyle="#FF0000";
-	drawCtx.stroke();
-	setTimeout((function(x){return function(){eraseVec(x);}})(v),2);
-}
-function eraseVec(v)
-{
-	drawCtx.moveTo(350,350);
-	var s=1e6;
-	console.log("e.x: "+v.x);
-	drawCtx.lineTo(350+s*v.x,350-s*v.y);
-	//drawCtx.lineTo(100,100);
-	drawCtx.strokeStyle="#000000";
-	drawCtx.stroke();
-}
+
 function playFieldTones(t)
 {
 	for (var i=0;i<2;i++)
@@ -145,15 +120,15 @@ function playFieldTone(t,p)
 	//plotAngle(t,findAngle(e));
 	if(orientationCoding=="clock")
 	{
-		playTone(makeFreq(findAngle(e),p),3*makeAmp(vLen(e),p),p); //only one voice vs 3 for shep
+		playTone(makeFreq(findAngle(e),p),makeAmp(vLen(e),p),p); 
 		return;
 	}
 	else if (orientationCoding=="amponly")
 	{
-		playTone(makeFreq(Math.PI,p),3*makeAmp(vLen(e),p),p); //only one voice vs 3 for shep
+		playTone(makeFreq(Math.PI,p),makeAmp(vLen(e),p),p); 
 		return;
 	}
-    playShepTone(findAngle(e),makeAmp(vLen(e),p),p);
+    playShepTone(findAngle(e),.33*makeAmp(vLen(e),p),p); //three voices
 }
 function findAngle(v)
 {
@@ -172,7 +147,7 @@ function makeFreq(angle,p)
 	var freq= ((angle/(2*Math.PI))*(maxFreq-minFreq))+minFreq;
 	//console.log("in make freq: "+freq)
 	if(p==1)
-		freq=4*freq; //2 octaves higher
+		freq=2*freq; //x octaves higher
 	return freq;
 }
 /*
@@ -188,10 +163,20 @@ function makeAmp(len,p)
 */
 function makeAmp(len,p)
 {
-	const CAP=1e-6;
 	console.log("len is ",len);
-	len=Math.min(CAP,len);
-	amp=3e7*(len-.75/(Math.pow(vLen(PT[p])+1,2)));
+	if(vLen(PT[p])==0)
+		amp=0; //exclude origin
+	else
+		amp=1.75e7*(len-.74/(Math.pow(vLen(PT[p])+1,2))); //1.5
+	/*
+	if (amp<0)
+	{
+		console.log("****************negative");
+		amp=2.3;
+	}
+	else
+		amp=Math.min(2,amp);
+	*/
 	console.log("amp "+amp);
 	return amp;
 }
