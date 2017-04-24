@@ -13,6 +13,7 @@ say=function(msg)
 	window.speechSynthesis.cancel();
 	var u = new SpeechSynthesisUtterance();
 	u.text=msg;
+	u.volume=.1; //so can have system volume a little higher
 	window.speechSynthesis.speak(u);
 }
 var screenreader=function()
