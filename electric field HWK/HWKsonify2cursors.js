@@ -4,20 +4,7 @@ var t=0;
 var orientationCoding="clock";
 var running="never";
 var drawCtx;
-function toggleRun()
-{	//alert("running");
-	if (running=="never") //have not run before
-        {
-		running=false;
-		mySoundSystem=initSoundSystem();
-		setCompassCoding();
-         }
 
-	running=!running;
-
-	sonifyField();
-	//testSound();
-}
 function toggleFirst() //what to say
 {
 	if(audible[0])
@@ -46,7 +33,6 @@ function toggleProbe(p)
 	{
 		for(var i=0;i<2;i++)
 			mySoundSystems[i]=initSoundSystem();
-		setCompassCoding();
 		running=true;
 		
 		
