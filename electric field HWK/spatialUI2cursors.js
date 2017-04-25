@@ -226,8 +226,10 @@ var coding="The amplitude of the field at the position of the probe is indicated
 +"orientation is given using Shepard tones. These seem to get higher as the orientation shifts from east "
 +"to north to west, and so on, and seem to get lower as the orientation shifts the other way, "
 +"with no apparent jump at east.  "
++"Selecting amplitude only varies only the loudness of the tone so changes in amplitude can be heard more easily. "
 +"The sound made by the second probe is higher than the sound of the first probe, so you can "
-+"tell them apart.";
++"tell them apart. "
++"Because the amplitude is very high near the origin the sound is turned off at that location. ";
 var motion="The simulation can show four different patterns of motion for a charge located near "
 +" the origin of the space (coordinates zero comma zero). For stationary the charge does "
 +"not move. For horizontal the charge moves back and forth along the x axis. For vertical "
