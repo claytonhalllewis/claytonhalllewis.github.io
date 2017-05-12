@@ -1,0 +1,62 @@
+/*
+<button onclick="run();">run</button>
+<button onclick="com0();">move hand to right sleeve</button>
+<button onclick="com1();">move hand to left sleeve</button>
+<button onclick="com2();">move hand to center of screen</button>
+<button onclick="com3();">move hand to lefside of screen</button>
+<button onclick="com4();">move hand to right</button>
+
+<button onclick="com5();">open hand</button>
+<button onclick="com6();">close hand</button>
+*/
+function run()
+{
+	drawDb(mainDb);
+}
+function com0()
+{
+	takeAction(["move","obj","hand"]);
+	takeAction(["move","place","sp1"]);
+	settle();
+	drawDb(mainDb);
+}
+function com1()
+{
+	takeAction(["move","obj","hand"]);
+	takeAction(["move","place","sp2"]);
+	settle();
+	drawDb(mainDb);
+}
+function com2()
+{
+	takeAction(["move","obj","hand"]);
+	takeAction(["move","place","center"]);
+	settle();
+	drawDb(mainDb);
+}
+function com3()
+{
+	takeAction(["move","obj","hand"]);
+	takeAction(["move","place","leftside"]);
+	settle();
+	drawDb(mainDb);
+}
+function com4()
+{
+	takeAction(["move","obj","hand"]);
+	takeAction(["move","place","right"]);
+	settle();
+	drawDb(mainDb);
+}
+function com5()
+{
+	ttakeAction(["hand","close","false"]);
+	settle();
+	drawDb(mainDb);
+}
+function com6()
+{
+	ttakeAction(["hand","close","false"]);
+	settle();
+	drawDb(mainDb);
+}

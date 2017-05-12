@@ -1,0 +1,35 @@
+<html>
+<head>
+<title>TRIPS Redux</title>
+<script src="trips.js"></script>
+<script src="model.js"></script>
+<script src="tripsAnimate.js"></script>
+<script src="tripsCommands.js"></script>
+<style type="text/css">
+			.cell
+			{
+				position:absolute;
+				opacity:.5;
+			}
+			
+		</style>
+
+</head>
+<body style="background-color:powderblue;">
+
+<button onclick="run();">run</button>
+<button onclick="com0();">move hand to right sleeve</button>
+<button onclick="com1();">move hand to left sleeve</button>
+<button onclick="com2();">move hand to center of screen</button>
+<button onclick="com3();">move hand to lefside of screen</button>
+<button onclick="com4();">move hand to right</button>
+
+<button onclick="com5();">open hand</button>
+<button onclick="com6();">close hand</button>
+<div>
+<img class='cell' id='balloon' src='balloon.jpg' height="42" width="42">
+<img class='cell' id='hand' src='hand.png' height="42" width="42">
+<img class='cell' id='sweater' src='sweater.jpg' height="200" width="200" >
+</div>
+</body>
+</html>
