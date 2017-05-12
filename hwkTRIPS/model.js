@@ -76,7 +76,7 @@ var rules=[
 		[["electronBalance-surplus"],"appliesTo",["thing","is"]],
 		[["thing","is"],"hasSurplus",["true"]],
 		[["thing","is"],"hasDeficit",["false"]],
-		[["narr0"],"say",["if a part of something has as electron and no proton it has an electron surplus. Here the thing with the surplus is the"]], //.arity of say is m1
+		[["narr0"],"say",["if a part of something has an electron and no proton it has an electron surplus. Here the thing with the surplus is the"]], //.arity of say is m1
 		[["narr1"],"say",["thing","is" ]],
 		[["narr2"],"say",["NULL"]],
 		[["narr3"],"say",["NULL"]]
