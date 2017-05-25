@@ -4,6 +4,28 @@ var originalDb=[
 ["hasProton","hasImage","proton.png"],
 ["hasElectron","hasImage","electron.png"],
 
+["leftside","location",[250,250]],
+["center","location", [600,250]],
+["atWall","location",[850,250]],
+["wall0place","location",[965,250]],
+["wall1place","location",[965,370]],
+["wall2place","location",[965,490]],
+["belowLeftside","location",[250,500]],
+["belowCenter","location", [600,500]],
+["belowAtWall","location",[850,500]],
+
+["atWall","nearWall","true"],
+["belowAtWall","nearWall","true"],
+["atWall","wallPart","wall0"],
+["belowAtWall","wallPart","wall2"],
+
+["atWall","isAbove","belowAtWall"],
+["leftside","isAbove","belowLeftside"],
+["center","isAbove","belowCenter"],
+
+["wallPart","is","wall0"],
+["wallPart","is","wall2"],
+
 ["hasProton","hasOffset",[20,20]],
 ["hasElectron","hasOffset",[40,40]],
 
@@ -46,8 +68,12 @@ var originalDb=[
 
 ["hand","close","false"],
 ["hand","at","center"],
-["balloon","at","right"],
+["balloon","at","belowAtWall"],
 ["sweater","at","leftside"],
+
+["wall0","at","wall0place"],
+["wall1","at","wall1place"],
+["wall2","at","wall2place"],
 
 ["close",".arity","11"],
 ["unique",".arity","11"],
@@ -58,7 +84,10 @@ var originalDb=[
 ["place",".arity","11"],
 ["hasElectron",".arity","m1"],
 ["hasProton",".arity","m1"],
-["say",".arity","m1"]
+["say",".arity","m1"],
+["wallImage",".arity","m1"],
+["isAbove",".arity","m1"],
+["thing",".arity","m1"]
 
 
 ];
@@ -188,11 +217,11 @@ var rules=[
 [
 	[
 		[["sweater","contains"],"eq",["balloon","prev"]],
-		[["balloon","rub"],"eq",["NULL"]]
+		[["balloon","rub"],"neq",["balloon","prev"]]
 	],
 	[
 		[["balloon"],"rub",["sweater","contains"]],
-		[["narr0"],"say",["Moving the balloon away from a place on the sweater is rubbing it."]], //.arity of say is m1
+		[["narr0"],"say",["Pulling the balloon away from a place on the sweater is rubbing it."]], //.arity of say is m1
 		[["narr1"],"say",["NULL"]],
 		[["narr2"],"say",["NULL"]],
 		[["narr3"],"say",["NULL"]]
@@ -202,7 +231,8 @@ var rules=[
 	[
 		[["electronBalance-surplus","appliesTo"],"neq",["NULL"]],
 		[["electronBalance-deficit","appliesTo"],"neq",["NULL"]],
-		[["attracted","thing"],"eq",["NULL"]]
+		[["attractor","thing"],"eq",["NULL"]],
+		[["attracted","thing","at","nearWall"],"neq",["true"]]
 	],
 	[
 		[["attracted"],"thing",["electronBalance-surplus","appliesTo"]],
@@ -217,6 +247,7 @@ var rules=[
 [
 	[
 		[["attracted","thing"],"neq",["NULL"]],
+		[["attractor","thing"],"neq",["NULL"]], //to prevent moving in sticking case
 		[["attracted","thing"],"neq",["held","unique"]],
 		[["attracted","thing","light"],"eq",["true"]],
 		[["attracted","thing","at"],"neq",["attractor","thing","at"]]
@@ -227,6 +258,22 @@ var rules=[
 		[["narr1"],"say",["attracted","thing"]],
 		[["narr2"],"say",["moves to the"]],
 		[["narr3"],"say",["attractor","thing"]]
+	]
+],
+[
+	[
+		[["balloon"],"neq",["attracted","thing"]],
+		[["balloon"],"neq",["held","unique"]],
+		[["balloon","at","isAbove"],"neq",["NULL"]]
+	],
+	[
+		[["balloon"],"at",["balloon","at","isAbove"]],
+		[["narr0"],"say",["The balloon drops to the floor."]], //.arity of say is m1
+		[["narr1"],"say",["NULL"]],
+		[["narr2"],"say",["NULL"]],
+		[["narr3"],"say",["NULL"]]
+		
+		
 	]
 ],
 
@@ -257,5 +304,56 @@ var rules=[
 		[["held"],"unique",["NULL"]]
 		
 	]
+],
+[
+	[
+		[["thing","is","hasSurplus"],"eq",["true"]],
+		[["thing","is","at","nearWall"],"eq",["true"]],
+		[["thing","is","at","wallPart","wallImage"],"neq",["polarized.png"]]
+
+	],
+	[
+		[["thing","is","at","wallPart"],"wallImage",["polarized.png"]],
+		[["narr0"],"say",["The extra electrons on the "]], //.arity of say is m1
+		[["narr1"],"say",["thing","is"]],
+		[["narr2"],"say",["have rotated the dipoles in the wall."]],
+		[["narr3"],"say",["NULL"]]
+		
+		
+	]
+],
+[
+	[
+		[["thing","is","hasSurplus"],"eq",["true"]],
+		[["thing","is","at","wallPart","wallImage"],"eq",["polarized.png"]],
+		[["attractor","thing"],"neq",["NULL"]]
+
+	],
+	[
+		[["attracted"],"thing",["thing","is"]],
+		[["attractor"],"thing",["NULL"]], //don't move it
+		[["narr0"],"say",["The extra electrons on the "]], //.arity of say is m1
+		[["narr1"],"say",["thing","is"]],
+		[["narr2"],"say",["are attracted to the protons in the dipoles, "]],
+		[["narr3"],"say",["which are closer than the electrons."]]
+		
+		
+	]
+],
+[
+	[
+		[["wallPart","is","wallImage"],"eq",["polarized.png"]],
+		[["balloon","at","wallPart"],"neq",["wallPart","is"]]
+	],
+	[
+		[["wallPart","is"],"wallImage",["randomWall.png"]],
+		[["narr0"],"say",["With the electrons on the balloon gone "]], //.arity of say is m1
+		[["narr1"],"say",["the previously rotated dipoles in the wall"]],
+		[["narr2"],"say",["drift back to random orientation."]],
+		[["narr3"],"say",["NULL"]]
+		
+		
+	]
 ]
+
 ];

@@ -1,4 +1,4 @@
-
+ 
 function run()
 {
 	for(var i=0;i<originalDb.length;i++)
@@ -39,7 +39,7 @@ function com3()
 function com4()
 {
 	takeAction(["move","obj","hand"]);
-	takeAction(["move","place","right"]);
+	takeAction(["move","place","atWall"]);
 	settle();
 	drawDb(mainDb);
 }
@@ -52,6 +52,27 @@ function com5()
 function com6()
 {
 	takeAction(["hand","close","true"]);
+	settle();
+	drawDb(mainDb);
+}
+function com7()
+{
+	takeAction(["move","obj","hand"]);
+	takeAction(["move","place","belowLeftside"]);
+	settle();
+	drawDb(mainDb);
+}
+function com8()
+{
+	takeAction(["move","obj","hand"]);
+	takeAction(["move","place","belowCenter"]);
+	settle();
+	drawDb(mainDb);
+}
+function com9()
+{
+	takeAction(["move","obj","hand"]);
+	takeAction(["move","place","belowAtWall"]);
 	settle();
 	drawDb(mainDb);
 }

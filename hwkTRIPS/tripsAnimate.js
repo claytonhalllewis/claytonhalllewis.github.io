@@ -46,6 +46,12 @@ function drawTriple(trip)
 		//console.log("drawing particle triple ",trip);
 		drawParticle(trip);
 	}
+	else if(trip[1]=="wallImage")
+	{
+		var img=image(trip[0]);
+		img.src=trip[2];
+	}
+	
 }
 function image(id) //replace by something in DB
 {
@@ -56,19 +62,20 @@ function image(id) //replace by something in DB
 }
 
 
-function location(atom) //replace by something in DB
+function location(atom) 
 {
 	//console.log("atom is ",atom);
 	var ans;
-	var locations=
-	{
-		"leftside":[250,300],
-		"center": [600,300],
-		"right":[850,300]
-	};//hack for now to handle places contained in things
+	//var locations=
+	//{
+	//	"leftside":[250,300],
+	//	"center": [600,300],
+	//	"right":[850,300]
+	//};//hack for now to handle places contained in things
 	if(isPlace(atom))
 	{
-		ans=locations[atom];
+		ans=lookupPlain(atom,"location",mainDb);
+		//ans=locations[atom];
 		//console.log("location of ",atom, " is ",ans);
 		return ans;
 	}
