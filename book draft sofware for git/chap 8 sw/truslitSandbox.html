@@ -1,0 +1,50 @@
+<html>
+<head>
+<title> Truslit Testbed</title>
+<script src="truslitPgm112.js" defer ></script>
+<style>
+
+
+form {
+    float: left;
+}
+.divB {
+	clear:left;
+}
+
+
+</style>
+</head>
+<body onload="buildPage()">
+<div>
+<h2>Truslit Testbed</h2>
+</div>
+<div id='form1'>
+</div>
+
+<div class="divB">
+Number of repetitions:<br>
+<input type="text" id="nRepetitions1" value=5>
+<br>
+<div id='form2'>
+</div>
+<div class="divB">
+Number of repetitions:<br>
+<input type="text" id="nRepetitions2" value=5>
+<br>
+Number of global repetitions:
+<input type="text" id="nRepetitionsG" value=5>
+<button onclick="run();">run/stop</button>
+<button onclick="preset1();">Preset 1</button>
+<button onclick="preset2();">Preset 2</button>
+<button onclick="preset3();">Preset 3</button>
+<div id="melodyOutputArea1">
+</div>
+<div id="melodyOutputArea2">
+</div>
+</div>
+
+
+
+</body>
+</html>

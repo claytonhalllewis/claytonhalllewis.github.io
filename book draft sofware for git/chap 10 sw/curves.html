@@ -1,0 +1,50 @@
+<html>
+<head><title>SVG Drag</title>
+<link rel="stylesheet" href="svgnopstyles.css">
+<script src="svgnopdragPathDouble.js"></script>
+<script src="trajectoryPathDouble.js"></script>
+<script src="path-data-polyfill.js"></script>
+<script src="tonesDouble.js"></script>
+</head>
+<body>
+
+<button id="run">run/stop</button>
+
+<audio id="drum">
+<source src="kickatb.wav"></source>
+</audio>
+<object>
+<svg id="svg"
+  height="480"
+  width="480"
+>
+	
+  
+<g id="canvas" height="480" width="480">
+</g>
+<path d="M10,110 A120,120 -45 0,1 110 10 A120,120 -45 0,1 10,110"
+      stroke="lightgrey" stroke-width="2" 
+      fill="none" id="theMotionPath0"></path>
+<circle id="cursor0" cx="" cy="" r="20" fill="red" visibility="hidden">
+    <!-- Define the motion path animation -->
+    <animateMotion id="motion0" dur="4s" repeatCount="indefinite" fill="freeze" begin="indefinite">
+      <mpath xlink:href="#theMotionPath0"></mpath>
+    </animateMotion>
+  
+  </circle>
+  <path d="M10,110 A120,120 -45 0,1 110 10 A120,120 -45 0,1 10,110"
+      stroke="lightgrey" stroke-width="2" 
+      fill="none" id="theMotionPath1"></path>
+<circle id="cursor1" cx="" cy="" r="20" fill="red" visibility="hidden">
+    <!-- Define the motion path animation -->
+    <animateMotion id="motion1" dur="2s" repeatCount="indefinite" fill="freeze" begin="indefinite">
+      <mpath xlink:href="#theMotionPath1"></mpath>
+    </animateMotion>
+  
+  </circle>
+
+</svg>
+</object>
+
+</body>
+</html>
