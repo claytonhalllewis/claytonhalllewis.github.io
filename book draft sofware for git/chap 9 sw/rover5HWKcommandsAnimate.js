@@ -29,8 +29,8 @@ function runIt()
 	//v=xyPlaneZ();
 	v=xyPlaneZ();
 	//console.log("here");
-	//theSceneFn=inShapeOrange;
-	theSceneFn=inSafeScenario;
+	theSceneFn=inShapeOrange;
+
 
 
 	draw(theSceneFn,v);
