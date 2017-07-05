@@ -16,7 +16,10 @@ var lastOp="nav";
 
 var handleKey=function(keyAsString)
 {
-    var periodKey="¾"[1];
+    //var periodKey="¾"[1];
+    var periodKey="¾";
+    if(periodKey.length==2)
+        periodKey=periodKey[1];
    // if (keyAsString=="/") //slash for select
    if (keyAsString==" ") //space for select
     {
