@@ -9,6 +9,8 @@ var deletedItem;
 var deletionPoint;
 var structure=[];
 
+//
+
 
 Execute=function()
 {
