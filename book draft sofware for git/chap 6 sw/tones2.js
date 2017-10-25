@@ -1,6 +1,16 @@
 const kSampleRate = 44100; // Other sample rates might not work depending on the your browser's AudioContext
 
-var ctx = new AudioContext();
+//var ctx = new AudioContext();
+if (!window.AudioContext) 
+{
+        if (window.webkitAudioContext) 
+        {
+            window.AudioContext = window.webkitAudioContext;
+        }
+
+}
+
+var ctx = new window.AudioContext();
 var queueDelay=0;
 
 
