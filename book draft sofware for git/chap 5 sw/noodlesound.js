@@ -8,13 +8,8 @@ var FREQS={"C":261.63,"D":	293.66, "E":329.63,	"F": 349.23,"G":392.00,"A":415.30
 var kFreq=FREQS["C"];
 
 function play_buffersource() {
-    if (!window.AudioContext) {
-        if (!window.webkitAudioContext) {
-            //alert("Your browser sucks because it does NOT support any AudioContext!");
-            return;
-        }
-        window.AudioContext = window.webkitAudioContext;
-    }
+    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    var audioCtx = new AudioContext();
 
     var ctx = new AudioContext();
 
