@@ -48,9 +48,11 @@ function inGoldbar(p)
     	(p.w>(w-THICK))&&(p.w<(w+THICK))
     	)
     	{
+    		//console.log("gold");
     		color=GOLD;
     		return true;
     	}
+    //console.log("not gold");
     return false;
 }
 function barX(t)

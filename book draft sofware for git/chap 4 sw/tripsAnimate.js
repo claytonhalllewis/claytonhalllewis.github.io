@@ -37,7 +37,7 @@ function drawTriple(trip)
 	if (trip[1]=="at")
 	{
 		var img=image(trip[0]);
-		var loc=location(trip[2]);
+		var loc=locatio(trip[2]);
 		//console.log("drawing ",trip[0]);
 		draw(img,loc);
 	}
@@ -62,7 +62,7 @@ function image(id) //replace by something in DB
 }
 
 
-function location(atom) 
+function locatio(atom) //?location reserved word?
 {
 	//console.log("atom is ",atom);
 	var ans;
@@ -83,13 +83,13 @@ function location(atom)
 	{
 		var offset=lookupPlain(atom,"hasOffset",mainDb);
 		var container=findContainer(atom);
-		var containerLoc=location(container);
+		var containerLoc=locatio(container);
 		ans=addOffset(containerLoc,offset);
 		//console.log("location of ",atom," is ",ans);
 		return ans;
 	}
 	//thing
-	ans=location(lookupPlain(atom,"at",mainDb));
+	ans=locatio(lookupPlain(atom,"at",mainDb));
 	//console.log("location of ",atom," is ",ans);
 	return ans;
 }
@@ -134,7 +134,7 @@ function findParticleLoc(triple)
 	//console.log("place offset is",offset);
 	var container=findContainer(place);
 	//console.log("container is ",container)
-	var containerLoc=location(container);
+	var containerLoc=locatio(container);
 	//console.log("container loc is ",containerLoc);
 	var particleOffset=lookupPlain(triple[1],"hasOffset",mainDb);
 	//console.log("particle offset is ",particleOffset);

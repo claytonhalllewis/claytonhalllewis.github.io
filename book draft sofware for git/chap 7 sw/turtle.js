@@ -19,18 +19,22 @@ var audioCtx = new AudioContext();
 
 var panner = audioCtx.createPanner();
 panner.panningModel = 'HRTF';
-panner.distanceModel = 'linear';
+panner.distanceModel = 'exponential';//linear
 panner.refDistance = 500;
 panner.maxDistance = 20000;
-panner.rolloffFactor = 5;
-panner.coneInnerAngle = 0;
-panner.coneOuterAngle = 45;
-panner.coneOuterGain = 1;
-
+panner.rolloffFactor = 1; //5 for linear
+panner.coneInnerAngle = 360;
+panner.coneOuterAngle = 0;
+panner.coneOuterGain = 0;
+//positionPanner();
+/*
+console.log(panner);
+console.log(panner.orientationX);
 panner.orientationX.value = 0; //1
 panner.orientationY.value = 0; //0
 panner.orientationZ.value = 1; //0
-
+*/
+/*
 var panner2 = audioCtx.createPanner();
 panner2.panningModel = 'HRTF';
 panner2.distanceModel = 'linear';
@@ -44,12 +48,13 @@ panner2.coneOuterGain = 1;
 panner2.orientationX.value = 0; //1
 panner2.orientationY.value = 0; //0
 panner2.orientationZ.value = 1; //0
+*/
 
 var gainNode=audioCtx.createGain();
 
 
 
-
+/*
 var listener = audioCtx.listener;
 
   listener.forwardX.value = 0;
@@ -58,31 +63,42 @@ var listener = audioCtx.listener;
   listener.upX.value = 0;
   listener.upY.value = 1;
   listener.upZ.value = 0;
+  */
 
 var source;
 var source2;
 
-
+/*
 // listener will always be in the same place for this demo
 
 
   listener.positionX.value = 0;
   listener.positionY.value = 400;
   listener.positionZ.value = -100;
+*/
 
 // panner will move as the turtle moves 
-function positionPanner(h) 
+function positionPanner() 
 {
-  
+  if(panner.positionX) {
+  panner.positionX.value = xPos;
+  panner.positionY.value = yPos;
+  panner.positionZ.value = zPos;
+} else {
+  panner.setPosition(xPos,yPos,zPos);
+}
+/*
+    //panner.setPosition(xPos,yPos,zPos);
     panner.positionX.value = xPos;
     panner.positionY.value = yPos;
     panner.positionZ.value = zPos;
-
-    panner.orientationX.value = Math.cos(radians(heading));
+*/
+/*
+    panner.orientationX.value = Math.cos(radians(h));//heading
     panner.orientationY.value = 0; 
-    panner.orientationZ.value = Math.sin(radians(heading));
-
-    
+    panner.orientationZ.value = Math.sin(radians(h));//heading
+*/
+    /*
   
     panner2.positionX.value = xPos;
     panner2.positionY.value = yPos;
@@ -91,6 +107,7 @@ function positionPanner(h)
     panner2.orientationX.value = -Math.cos(radians(heading));
     panner2.orientationY.value = 0; 
     panner2.orientationZ.value = -Math.sin(radians(heading));
+    */
 }
 
 function configureSource()
@@ -100,10 +117,10 @@ function configureSource()
   oscillator.type="sine";
   oscillator.frequency.value = 220; // value in hertz
   source=oscillator;
-  var oscillator2 = audioCtx.createOscillator();
-  oscillator2.type = 'square';
-  oscillator2.frequency.value = 330; // value in hertz
-  source2=oscillator2;
+  //var oscillator2 = audioCtx.createOscillator();
+  //oscillator2.type = 'square';
+  //oscillator2.frequency.value = 330; // value in hertz
+  //source2=oscillator2;
 }
 
 function startTurtle()
@@ -112,6 +129,7 @@ function startTurtle()
   xPos=-1000*DSCALE;
   yPos=0;
   zPos=300*DSCALE;
+  positionPanner();
   heading=0;
   gainNode.gain.value=.5;
   delay=0;
@@ -239,7 +257,7 @@ function realStep(h)
 {
     xPos=xPos+DSCALE*Math.cos(radians(h));
     zPos=zPos+DSCALE*Math.sin(radians(h));
-    positionPanner(h);
+    positionPanner();
 }
 function turtleStop()
 {
@@ -261,15 +279,15 @@ function left(a)
 
 function turnL()
 {
-  var headingAsString=heading.toString();
-  setTimeout(function(){realTurnL(headingAsString);},delay);
+  //var headingAsString=heading.toString();
+  //setTimeout(function(){realTurnL(headingAsString);},delay);
   heading=heading+TSCALE;
-  delay=delay+DELTA;
+  //delay=delay+DELTA;
 }
 function realTurnL(h)
 {
     //console.log(h);
-    positionPanner(h);
+    //positionPanner(h); //?not needed because no longer changing orientation of source?
 }
 
 function radians(a)
@@ -282,8 +300,10 @@ function setup()
     configureSource();
     source.connect(panner);
     panner.connect(gainNode);
+    /*
     source2.connect(panner2);
     panner2.connect(gainNode);
+    */
     gainNode.gain.value=0;
     gainNode.connect(audioCtx.destination);
     source.start(0);

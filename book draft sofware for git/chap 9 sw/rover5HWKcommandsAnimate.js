@@ -177,7 +177,7 @@ function setSceneOrange()
 }
 function setSceneSafe()
 {
- 	theSceneFn=inSafe;
+ 	theSceneFn=inSafeScenario;
  	draw(theSceneFn,v);
 }
 function setSceneHypercube()

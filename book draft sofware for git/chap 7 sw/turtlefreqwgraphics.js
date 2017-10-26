@@ -64,7 +64,7 @@ panner.rolloffFactor = 5;
 //panner.orientationX.value = 0; //1
 //panner.orientationY.value = 0; //0
 //panner.orientationZ.value = 1; //0
-
+/*
 var panner2 = audioCtx.createPanner();
 panner2.panningModel = 'HRTF';
 panner2.distanceModel = 'linear';
@@ -78,10 +78,11 @@ panner2.coneOuterGain = 1;
 panner2.orientationX.value = 1; //1
 panner2.orientationY.value = 0; //0
 panner2.orientationZ.value = 0; //0
+*/
 
 var gainNode=audioCtx.createGain();
 
-
+/*
 var listener = audioCtx.listener;
 
   listener.forwardX.value = 0;
@@ -90,10 +91,10 @@ var listener = audioCtx.listener;
   listener.upX.value = 0;
   listener.upY.value = 1;
   listener.upZ.value = 0;
-
+*/
 var source;
 var source2;
-
+/*
 
 // listener will always be in the same place for this demo
 
@@ -101,6 +102,7 @@ var source2;
   listener.positionX.value = 0;
   listener.positionY.value = 400;
   listener.positionZ.value = -100;
+*/
 /*
   function freq(z) //linear
   {
@@ -121,7 +123,13 @@ var source2;
 function positionPanner(h,x,z) 
 {
   
-    panner.positionX.value = x;
+    //panner.positionX.value = x;
+    if (panner.positionX)
+      panner.positionX.value=x;
+    else panner.setPosition(x,yPos,zPos);
+
+
+
     //panner.positionZ.value = z; //leave unchanged
     source.frequency.value=freq(z);
 
