@@ -8,10 +8,10 @@ var FREQS={"C":261.63,"D":	293.66, "E":329.63,	"F": 349.23,"G":392.00,"A":415.30
 var kFreq=FREQS["C"];
 
 function play_buffersource() {
-    var AudioContext = window.AudioContext || window.webkitAudioContext;
-    var audioCtx = new AudioContext();
+    //var AudioContext = window.AudioContext || window.webkitAudioContext;
+    //var audioCtx = new AudioContext();
 
-    var ctx = new AudioContext();
+    //var ctx = new AudioContext();
 
     var buffer1 = ctx.createBuffer(1, kNumSamples, kSampleRate);
     var buf    = buffer1.getChannelData(0);
@@ -57,6 +57,9 @@ function nowPlaySound(sound)
     node.connect(ctx.destination);
     node.start();
 }
+var AudioContext = window.AudioContext || window.webkitAudioContext;
+var audioCtx = new AudioContext();
+
 var ctx = new AudioContext();
 function playSoundOld(arg) 
 {
