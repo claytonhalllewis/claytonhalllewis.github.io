@@ -1,3 +1,7 @@
+//uses Blockly to evaluate XML version of code https://developers.google.com/blockly/
+//cloning from https://stackoverflow.com/questions/728360/how-do-i-correctly-clone-a-javascript-object
+//conversion of JSON to XML from https://github.com/estheban/node-json2xml
+
 function cloneObject(obj) 
 {
     if (obj === null || typeof obj !== 'object') 
@@ -5,7 +9,7 @@ function cloneObject(obj)
         return obj;
     }
  
-    var temp = obj.constructor(); // give temp the original obj's constructor
+    var temp = obj.constructor(); // make temp using the original obj's constructor
     for (var key in obj) 
     {
         temp[key] = cloneObject(obj[key]);
@@ -13,7 +17,7 @@ function cloneObject(obj)
  
     return temp;
 }
-function convert(b)
+function convert(b) //convert our JSON to form easily convertible to Blockly XML
 {
 	console.log("converting ",b);
 	var lookUp=
@@ -49,18 +53,7 @@ function convertPlayerNote(b)
 	return s;
 
 }
-/*
-function convertAnote(b)
-{
-	var s={"block":{"@type":"A note"}}; 
-	return s;
-}
-function convertBnote(b)
-{
-	var s={"block":{"@type":"B note"}}; 
-	return s;
-}
-*/
+
 function convertSelectableNote(b)
 {
 	var sa=b.args[0].value;

@@ -85,122 +85,42 @@ var scaleNonChrom=
 
 
 
-// define other variables
 
-var AudioContext = window.AudioContext || window.webkitAudioContext;
-var audioCtx = new AudioContext();
 var motion;
 
+//using flocking http://flockingjs.org/
 
+var myDrum;
+var mySynth;
+fluid.registerNamespace("myStuff");
 
+var environment = flock.init();
 
-
-
-
-var source0;
-var source1;
-var gain;
-
-var drum;
-
-/*
-function startRun()
+    // Expose any public functions or constructors as properties on your namesapce.
+myStuff.play = function () 
 {
-  running=true;
-  playCurve(.5);
+        mySynth = flock.synth({
+        synthDef: {
+                id:"carrier",
+                ugen: "flock.ugen.sinOsc",
+                freq:440.0,
+                mul: 0.1
+            }
+        });
+        myDrum = flock.synth({
+        synthDef: {
+            id:"drum",
+            ugen: "flock.ugen.lfNoise",
+          freq: 1000,
+          mul: 0
+        }
+        });
 }
-
-//gainNode.gain.exponentialRampToValueAtTime(1.0, audioCtx.currentTime + 2);
-
-function freq(y)
-{
-  var val=200*Math.exp(Math.log(2)*3*(y+1000)/2000);
-  //console.log(y,val);
-  return val;
-}
-
-
-      
-    source.frequency.exponentialRampToValueAtTime(freq(y),audioCtx.currentTime+t);
-
-  
-
-  
-
-function playTone(y,g)
-{
-  //var f=freq(y);
-    //console.log("y: "+y+" f: "+f);
-    gain.gain.value=g;
-    source.frequency.value=y;
-}
-*/
-
-function configureSoundSystem()
-{
-  console.log("in configureSoundSystem");
-  var oscillator0 = audioCtx.createOscillator();
-oscillator0.type = 'sine';
-oscillator0.frequency.value = 220; // value in hertz
-//[0,0.4,0.4,1,1,1,0.3,0.7,0.6,0.5,0.9,0.8] sort of a horn
-var imag= new Float32Array([1,0.4,0.4,.2,0,0,0.3,0.2]);   // sine
-    var real = new Float32Array(imag.length);  // cos
-    var customWave = audioCtx.createPeriodicWave(real, imag);  // cos,sine
-    oscillator0.setPeriodicWave(customWave);
-source0=oscillator0;
-var oscillator1 = audioCtx.createOscillator();
-oscillator1.type = 'sine';
-oscillator1.frequency.value = 220; // value in hertz
-//[0,0.4,0.4,1,1,1,0.3,0.7,0.6,0.5,0.9,0.8] sort of a horn
-  imag= new Float32Array([1,0.4,0.4,.2,0,0,0.3,0.2]);   // sine
-  real = new Float32Array(imag.length);  // cos
-   customWave = audioCtx.createPeriodicWave(real, imag);  // cos,sine
-    oscillator1.setPeriodicWave(customWave);
-source1=oscillator1;
-gain=audioCtx.createGain();
-source0.connect(gain);
-source1.connect(gain);
-gain.gain.value=0;
-gain.connect(audioCtx.destination);
-source0.start(0);
-//source1.start(0);
-running=false;
-motion=document.getElementById("motion");
-//motion.beginElement();
-//motion.endElement();
-drum=document.getElementById("drum");
-
-}
-
-/*
-
-function restore()
-{
-  gain.gain.value=1;
-}
-
-function stopRun()
-{
-  gain.gain.value=0;
-  running=false;
-}
+myStuff.play();
 
 
 
-function realStep(y,g)
-{
-  if (running)
-  {
-    playTone(y,g);
-  }
-}
-function step(y,g,noteLength)
-{
-  setTimeout((function(y){return function(){realStep(y,g);};})(y,g),t);
-  t=t+noteLength;
 
-}
-*/
 function freq(y)
 {
   var val=100*Math.exp(Math.log(2)*3*(1000-y)/1000);
@@ -212,35 +132,46 @@ function playTones()
   if (running)
   {
     //console.log("in playTones");
-    var noteInterval=100;
-    gain.gain.value=.3;
-    source0.frequency.value=clipToNote(freq(getCursorCoords(cursor0)[1]));
-    //source1.frequency.value=clipToNote(freq(getCursorCoords(cursor1)[1]));
-    processDrum();
+    var noteInterval=150;
+    
+    environment.start();
+    
+    mySynth.set("carrier.freq",clipToNote(freq(getCursorCoords(cursor0)[1])));
+    
+    processDrum(); 
     setTimeout(playTones,noteInterval);
   }
 }
 function mute()
 {
-  //setTimeout(function(){gain.gain.value=0;},t);
+  
   console.log("mute");
-  gain.gain.value=0;
+  
+  environment.stop();
 }
+var high=true;
 function processDrum()
 {
   console.log("process drum");
-  var TOP=250;
-  var BOT=150;
-
   var y=getCursorCoords(cursor1)[1];
-  console.log("y is ",y);
-  if ((y<TOP)&&(y>BOT))
+  if (high&&y<200)
+  {
     playDrum();
+    high=false;
+  }
+  else if(!high&&y>200)
+  {
+    playDrum();
+    high=true;
+  }
+
+  
 }
 function playDrum()
 {
   console.log("play drum");
-  drum.play();
+  myDrum.set("drum.mul",.2);
+  setTimeout(function(){myDrum.set("drum.mul",0);},75);
 }
 
 

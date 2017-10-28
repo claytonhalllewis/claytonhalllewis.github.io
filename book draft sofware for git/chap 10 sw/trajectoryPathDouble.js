@@ -1,4 +1,5 @@
 //construct the path and update it as points are dragged
+//using ideas from https://stackoverflow.com/questions/9121133/smooth-svg-path-connection
 
 function addPath(pointArray,tag)
 {
@@ -11,12 +12,11 @@ function addPath(pointArray,tag)
     
     return myPath;
 }
-//let createTrianglePath = (x = 0, y = 0, width = 100, height = 200) => {
+
 function createPath(tag)
 	{
   
-  //var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  //var path=document.getElementById("theMotionPath");
+ 
   var path=document.getElementById(tag);
   return path;
 }
@@ -51,17 +51,7 @@ function setPath(pointArray,path)
   	coords[i]=getPointCoords(pointArray[i]);
   	midpt[i]=getMidPoint(pointArray,i);
   }
-  /*
-  var pathData=
-  [
-  	{type:"M",values:coords[0]},
-  	{type:"C",values:coords[1].concat(coords[2]).concat(coords[3])},
-  	{type:"S",values:coords[4].concat(coords[5])},
-  	{type:"S",values:coords[6].concat(coords[0])},
-  	//{type:"Z"}
-  	//{type:"S",values:coords[7].concat(coords[0])}
-  ];
-  */
+  
  //console.log("midpt: ",midpt[1]);
   var pathData=
   [

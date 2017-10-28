@@ -1,4 +1,4 @@
-// define meta objects
+
 var drag = null;
 
 var canvas = {};
@@ -9,6 +9,9 @@ var thePath0;
 var cursor0;
 var thePath1;
 var cursor1;
+
+//dragging using code from https://stackoverflow.com/questions/40276529/spawn-drag-of-svg-elements-approach
+//
 
 	
 window.onload = function() {
@@ -48,7 +51,6 @@ window.onload = function() {
 	thePath1=addPath(pointArray1,"theMotionPath1");
 	cursor0=document.getElementById("cursor0");
 	cursor1=document.getElementById("cursor1");
-	configureSoundSystem();
 	console.log("loaded");
 	
 }
@@ -58,17 +60,15 @@ window.onload = function() {
 
 
 function AttachListeners() {
-	//var ttt = document.getElementsByClassName('inventory'), i;
-	//for (i = 0; i < ttt.length; i++) {
-    //    document.getElementsByClassName("inventory")[i].onmousedown=Drag;
-	//}
+	
 	document.getElementById("run").onclick=run;
-    document.getElementById("svg").onmousemove=Drag;
+    //document.getElementById("svg").onmousedown=Drag;
 	document.getElementById("svg").onmouseup=Drag;
+	document.getElementById("svg").onmousemove=Drag; //
 
 }
 
-// Drag function that needs to be modified;//
+
 function Drag(e) {
     var t = e.target, id = t.id, et = e.type;  m = MousePos(e);
   	
@@ -88,7 +88,6 @@ function Drag(e) {
 		dPoint = m;
 		drag.setAttribute("transform", "translate(" +drag._x+","+drag._y+")");	
 		
-		//setPath(thePath);
 		setBothPaths();
 		
 
@@ -96,7 +95,6 @@ function Drag(e) {
 		
     // stop drag
 	if (drag && (et == "mouseup")) {
-		//drag.className.baseVal="draggable";
 		drag = null;
 	}
 	//showPointCoords();
@@ -144,6 +142,7 @@ function makePoint(x,y,color)
     shape._x=0;
     shape._y=0;
     shape.onmousedown = Drag;
+    
     svg.appendChild( shape );
     //shape.xOut=makeNode();
     //shape.xOut.value=x;

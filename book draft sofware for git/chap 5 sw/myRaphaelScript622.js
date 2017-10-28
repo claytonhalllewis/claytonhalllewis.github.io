@@ -29,7 +29,7 @@ window.onload = function() {
 		};
 
 	var nWork=0;
-	//var selectedConnector={"out":{"selected":false,"x":0,"y":0},"in":{"selected":false,"x":0,"y":0}};
+	
     var selectedBlock=null;
     var foo="eggplant";
     var gensym=function()
@@ -72,9 +72,7 @@ window.onload = function() {
     {
         var workspace={};
         workspace.isPalette=true;
-        //workspace.paper = new Raphael(document.getElementById('palette_container'), PaletteWidth, PaletteHeight);  
-        //var paletteField=workspace.paper.rect(0,0,PaletteWidth,PaletteHeight)
-        //paletteField.attr("fill", FieldColor);
+        
         workspace.nBlocks=0;
         workspace.x=paletteX;
     
@@ -144,12 +142,12 @@ workspace.buildPaletteFromDict=function()
         workspace.blockCursor=0;
         workspace.connectorCursor=0;
         workspace.connectors=[];
-        //when true buttons prompt for confirmation rather than acting
+        
         workspace.selectedConnectors={"from":{"set":false},"to":{"set":false}};
         workspace.selectedEdge=null;
         workspace.selectedBlock={"block":null,"blockSelector":null};
         var wsContainer = document.createElement('div');
-        //document.getElementById('workspace_container_container').appendChild(wsContainer);
+        
         document.getElementById(container).appendChild(wsContainer);
         workspace.paper=new Raphael(wsContainer,width,height);
         var wsField=workspace.paper.rect(0,0,width,height);
