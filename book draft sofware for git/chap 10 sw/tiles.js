@@ -7,12 +7,32 @@ for(i=0;i<SIDE;i++)
 	for(j=0;j<SIDE;j++)
 		shadowGrid[i][j]=-1;
 }
+var colorTable={};
+
+function setColorTableRow(c)
+{
+	colorTable[c]=[c,c,c,c];
+	console.log(colorTable); 
+}
+setColorTableRow("red");
+
+setColorTableRow("blue");
+
+setColorTableRow("green");
+
+setColorTableRow("yellow");
+
+setColorTableRow("white");
+
+
+
+
+
+
+
 var types=[];
 //type -1 is empty
-//types[0]=["red","white","red","white"];
-//types[1]=["white","red","white","red"];
-//types[2]=["white","blue","white","red"];
-//types[3]=["white","red","white","blue"];
+
 types[0]=["white","white","white","white"];
 types[1]=["white","white","white","white"];
 types[2]=["white","white","white","white"];
@@ -29,55 +49,91 @@ function initializeTypes()
 		for(d=0;d<4;d++)
 			types[i][d]=randomColor();
 }
-var clumpTags=[];
-function clearClumpTags()
-{
-	var i,j;
-	for(i=0;i<SIDE;i++)
-	{
-		clumpTags[i]=[];
-		for(j=0;j<SIDE;j++)
-			clumpTags[i][j]=false;
-	}
-}
-function getClumpTag(cell)
-{
-	return clumpTags[cell[0]][cell[1]];
-}
-function setClumpTag(cell)
-{
-	clumpTags[cell[0]][cell[1]]=true;
-}
-var clumpCount;
-function countClump(cell)
-{
-	clearClumpTags();
-	clumpCount=0;
-	countClumpAux(cell);
-	console.log("count: ",clumpCount);
-	return clumpCount;
-}
-function countClumpAux(cell)
-{
-	if(getClumpTag(cell))
-		return; //already counted
-	clumpCount=clumpCount+1; //count this cell
-	setClumpTag(cell); //mark it counted
-	var t=typeInCell(cell);
-	var d,n;
-	for(d=0;d<4;d++)
-	{
-		n=neighbor(cell,d);
-		if(!empty(n)&&(types[t][d]==types[typeInCell(n)][opposite(d)])) //connected to this neighbor
-			countClumpAux(n); //count the neighbor and new things connected to it
-	}
-}
-
 
 function randomColor()
 {
 	var colors=["white","red","blue","green","yellow","white"];
 	return colors[Math.floor(Math.random()*colors.length)];
+}
+//idea: choose random 2x2 block
+function aStep()
+{
+	var corner=randomCell();
+	var theFit=fitBlock(corner);
+	var temp=saveBlock(corner);
+	console.log("temp ",temp);
+	var perm=permuteTemp(temp);
+	restoreBlock(corner,perm);
+	if(fitBlock(corner)<theFit)
+	{
+		restoreBlock(corner,temp);
+		return false; //no change
+	}
+	return true; //changed
+}
+//calculate its degree of fit
+//+ for matching faces, - for mismatch
+//save config
+//choose a permutation of the four cells
+//implement it
+//calculate its fit
+//if less, restore saved config
+
+function fitCell(cell) //edge colors must match if not empty
+{
+	if(empty(cell))
+		return 0;
+	var t=typeInCell(cell);
+	console.log("cell,t: ",cell,t);
+	var d;
+	var fit=0;
+	for (d=0;d<4;d++)
+	{
+		var n=neighbor(cell,d);
+		
+		console.log("cell,t,d,n: ",cell,t,d,n);
+		if(!empty(n)&&!matchColor(types[t][d],types[typeInCell(n)][opposite(d)],d)) //conflict
+			fit=fit-2;
+		else if(!empty(n)&&matchColor(types[t][d],types[typeInCell(n)][opposite(d)],d)) //match
+			fit=fit+2;
+		else if (empty(n)&&(types[t][d]=="white"))
+			fit=fit+1;
+	}
+	return fit;
+}
+function fitBlock(cell)
+{
+	return fitCell(cell)+fitCell(neighbor(cell,1))+fitCell(neighbor(neighbor(cell,1),2))+fitCell(neighbor(cell,2));
+}
+function saveBlock(cell)
+{
+	return [typeInCell(cell),typeInCell(neighbor(cell,1)),typeInCell(neighbor(neighbor(cell,1),2)),typeInCell(neighbor(cell,2))];
+}
+function restoreBlock(cell,temp)
+{
+	console.log("restoring cell ",cell);
+	setCell(cell,temp[0]);
+	setCell(neighbor(cell,1),temp[1]);
+	setCell(neighbor(neighbor(cell,1),2),temp[2]);
+	setCell(neighbor(cell,2),temp[3]);
+}
+function permuteTemp(temp)
+{
+	var perm=[];
+	var i;
+	for (i=0;i<temp.length;i++)
+		perm[i]=temp[i];
+	shuffleArray(perm);
+	return perm;
+}
+function shuffleArray(array) {
+    for (var i = array.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+    return array;
 }
 
 function randomCell()
@@ -124,47 +180,10 @@ function prob(p)
 	return Math.random()<p;
 }
 
-//???move toward center? as a way to promote clumping
-
-function processRandomTile()
+function matchColor(c,cp,d)
 {
-	//pick a cell
-	//pick a random move and if it works do it
-	var cell=randomCell();
-	if(empty(cell))
-		return false; //no change
-	makeMoveProb(cell);
-	
-}
-function findAMove(cell)
-{
-	var d;
-	var i;
-	var n;
-	var t=typeInCell(cell);
-	for(i=0;i<20;i++)
-	{
-		d=randomDirection();
-		n=neighbor(cell,d);
-		if (empty(n)&&compatibleExcept(t,n,opposite(d)))
-		{
-			setCell(cell,-1);
-			setCell(n,t);
-			drawGrid();
-			return;
-		}
-
-	}
-}
-	
-
-function isolated(cell)
-{
-	var d;
-	for(d=0;d<4;d++)
-		if(!empty(neighbor(cell,d)))
-			return false;
-	return true;
+	//console.log("colors, d: ",c,cp,d);
+	return (c==colorTable[cp][d]);
 }
 
 function neighbor(cell,dir)
@@ -215,50 +234,11 @@ function compatible(t,cell) //edge colors must match if not empty
 	for (d=0;d<4;d++)
 	{
 		var n=neighbor(cell,d);
-		if(!empty(n)&&(types[t][d]!=types[typeInCell(n)][opposite(d)]))
+		//if(!empty(n)&&(types[t][d]!=types[typeInCell(n)][opposite(d)]))
+		if(!empty(n)&&!matchColor(types[t][d],types[typeInCell(n)][opposite(d)],d));
 			return false;
 	}
 	return true;
-}
-function nStronglyCompatible(cell) //number of matching edge colors not counting empty nbrs
-{
-	var d;
-	var t=typeInCell(cell);
-	var count=0;
-	for (d=0;d<4;d++)
-	{
-		var n=neighbor(cell,d);
-		if(!empty(n)&&(types[t][d]==types[typeInCell(n)][opposite(d)]))
-			count=count+1;
-	}
-	return count;
-}
-function makeMoveProb(cell)
-{
-	var p;
-	var c=countClump(cell);
-	if (incompatible(typeInCell(cell),cell))
-		p=1;
-	else if (c<2)
-		p=1;
-	else if (c<4)
-		p=.1;
-	else p=0;
-
-	if(prob(p))
-		findAMove(cell);
-
-}
-function incompatible(t,cell) //some edge colors must NOT match
-{
-	var d;
-	for (d=0;d<4;d++)
-	{
-		var n=neighbor(cell,d);
-		if(!empty(n)&&(types[t][d]!=types[typeInCell(n)][opposite(d)]))
-			return true;
-	}
-	return false;
 }
 function compatibleExcept(t,cell,ignore) //edge colors must match if not empty except for one dir
 {
@@ -266,21 +246,11 @@ function compatibleExcept(t,cell,ignore) //edge colors must match if not empty e
 	for (d=0;d<4;d++)
 	{
 		var n=neighbor(cell,d);
-		if(!empty(n)&&(types[t][d]!=types[typeInCell(n)][opposite(d)])&&(d!=ignore))
+		//if(!empty(n)&&(types[t][d]!=types[typeInCell(n)][opposite(d)])&&(d!=ignore))
+		if(!empty(n)&&!matchColor(types[t][d],types[typeInCell(n)][opposite(d)],d)&&(d!=ignore));
 			return false;
 	}
 	return true;
-}
-function incompatibleExcept(t,cell,ignore) //edge colors must NOT match if not empty except for ignoring one dir
-{
-	var d;
-	for (d=0;d<4;d++)
-	{
-		var n=neighbor(cell,d);
-		if(!empty(n)&&(types[t][d]!=types[typeInCell(n)][opposite(d)])&&(d!=ignore))
-			return true;
-	}
-	return false;
 }
 function empty(cell)
 {

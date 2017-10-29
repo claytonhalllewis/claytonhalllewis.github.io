@@ -127,15 +127,7 @@ var rules=[
 		[["narr3"],"say",["NULL"]]
 	]
 ],
-/*
-[
-	[
-	],
-	[
-		[["electronBalance-neutral"],"appliesTo",["thing","is"]]
-	]
-],
-*/
+
 [
 	[
 		[["balloon","rub","hasElectron"],"eq",["true"]],

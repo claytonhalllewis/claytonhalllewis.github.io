@@ -28,7 +28,7 @@ function say(out)
 function drawDb(db)
 {
 	eraseParticles();
-	//console.log("drawing DB");
+	console.log("drawing DB");
 	for(var i=0;i<db.length;i++)
 		drawTriple(db[i]);
 }
@@ -38,12 +38,14 @@ function drawTriple(trip)
 	{
 		var img=image(trip[0]);
 		var loc=locatio(trip[2]);
-		//console.log("drawing ",trip[0]);
+		console.log("drawing ",trip[0]);
+		console.log("img ",img);
+		console.log("loc ",loc);
 		draw(img,loc);
 	}
 	else if(((trip[1]=="hasElectron")||(trip[1]=="hasProton"))&&(trip[2]=="true"))
 	{
-		//console.log("drawing particle triple ",trip);
+		console.log("drawing particle triple ",trip);
 		drawParticle(trip);
 	}
 	else if(trip[1]=="wallImage")
@@ -66,16 +68,10 @@ function locatio(atom) //?location reserved word?
 {
 	//console.log("atom is ",atom);
 	var ans;
-	//var locations=
-	//{
-	//	"leftside":[250,300],
-	//	"center": [600,300],
-	//	"right":[850,300]
-	//};//hack for now to handle places contained in things
+	
 	if(isPlace(atom))
 	{
 		ans=lookupPlain(atom,"location",mainDb);
-		//ans=locations[atom];
 		//console.log("location of ",atom, " is ",ans);
 		return ans;
 	}
@@ -85,12 +81,12 @@ function locatio(atom) //?location reserved word?
 		var container=findContainer(atom);
 		var containerLoc=locatio(container);
 		ans=addOffset(containerLoc,offset);
-		//console.log("location of ",atom," is ",ans);
+		console.log("location of ",atom," is ",ans);
 		return ans;
 	}
 	//thing
 	ans=locatio(lookupPlain(atom,"at",mainDb));
-	//console.log("location of ",atom," is ",ans);
+	console.log("location of ",atom," is ",ans);
 	return ans;
 }
 function isThing(atom)
@@ -112,8 +108,10 @@ function isPart(atom)
 }
 function draw(img,loc)
 {
-	img.style.left=loc[0]-img.width/2;
-	img.style.top=loc[1]-img.height/2;
+	console.log("in draw img ",img);
+	console.log("in draw loc ",loc);
+	img.style.left=(loc[0]-img.width/2)+"px";
+	img.style.top=(loc[1]-img.height/2)+"px";
 }
 
 function drawParticle(triple)
@@ -168,8 +166,8 @@ function addParticle(src,loc)
 	img.style.position="absolute";
 	img.style.opacity=.5;
 	img.src = src;
-	img.style.left=loc[0];
-	img.style.top=loc[1];
+	img.style.left=loc[0]+"px";
+	img.style.top=loc[1]+"px";
 	d.appendChild(img);
 }
 function eraseParticles()

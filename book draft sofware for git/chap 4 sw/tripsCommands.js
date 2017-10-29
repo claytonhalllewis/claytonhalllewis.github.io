@@ -5,7 +5,7 @@ function run()
 		mainDb[i]=originalDb[i];
 	mainDb.length=originalDb.length;
 	drawDb(mainDb);
-	//addParticle("electron.png",[100,200]);
+	
 }
 function com0()
 {
