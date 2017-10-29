@@ -72,7 +72,7 @@ function process()
   {
     //console.log("in process");
     var noteInterval=1;
-    if (processRandomTile())
+    if (aStep())
     	drawGrid();
     setTimeout(process,noteInterval);
   }
