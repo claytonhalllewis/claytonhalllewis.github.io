@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 		<title>Maya Matching Game</title>
@@ -9,8 +10,8 @@
 				width: 100px;
 			}
 			img {
-    			max-width: 100%;
-    			max-height: 100%;
+    			width: 100%;
+    			height: 100%;
 			}
 			body
 			{
@@ -21,7 +22,7 @@
 				float: right;
 				position: relative;
 				top: 50px;
-				width: 50%;
+				width: 30%;
 				font-family:Arial, Helvetica, sans-serif
 			}
 			
@@ -83,6 +84,7 @@ for(i=0;i<SIDEX;i++)
 	gridStatus[i]=[];
 	front[i]=[];
 }
+/*
 function createCell(x,y,imgNo)
 {
 		var cellid="c"+x+"$"+y;
@@ -92,6 +94,7 @@ function createCell(x,y,imgNo)
 		thiscell.style.left=x;
 		thiscell.style.top=y;
 }
+*/
 var blank="blank.png";
 var back="back.png";
 //arrays of image file names
@@ -117,8 +120,8 @@ for(var i=0;i<SIDEX;i++)
 		cellid="c"+x+"$"+y;
 		document.write("<div class='cell'  id='"+cellid+"'><img name='"+cellid+"' src='back.png'></div>");
 		thiscell=document.getElementById(cellid);
-		thiscell.style.left=x;
-		thiscell.style.top=y;
+		thiscell.style.left=x+"px";
+		thiscell.style.top=y+"px";
 		grid[i][j]=thiscell;
 		gridStatus[i][j]="down";
 		n=j*SIDEX+i;
