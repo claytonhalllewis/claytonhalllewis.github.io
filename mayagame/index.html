@@ -1,0 +1,493 @@
+<html>
+<head>
+		<title>Maya Matching Game</title>
+		<style type="text/css">
+			.cell
+			{
+				position:absolute;
+				height: 100px;
+				width: 100px;
+			}
+			img {
+    			max-width: 100%;
+    			max-height: 100%;
+			}
+			body
+			{
+				background-color:rgb(230,230,230);
+			}
+			.text
+			{
+				float: right;
+				position: relative;
+				top: 50px;
+				width: 40%;
+				font-family:Arial, Helvetica, sans-serif
+			}
+			
+		</style>
+
+
+			
+</head>
+<body onload="setup()" >
+<script language="JavaScript" type="text/javascript">
+<!--
+//displays grid of tiles, ot two types
+//maya tiles show maya numbers on front; arabic tiles show arabic on front
+//all tiles have identical backs, and numerical values
+//tiles are back up at first
+//game is in one of three states:
+//0: no tiles face up, 1: one tile face up, 2:two tiles face up
+//in state 0 clicking a tile flips it, go to state 1
+//in state 1 clicking a face down file flips it
+//if matches prev tile, remove both, go to state 0
+//otherwise goto state 2
+//in state 2 clicking a face down tile flips it and the face up tiles
+//eventually:
+//choose tile pairs randomly from large set of values
+//place matched tiles in order in columns to side of grid
+var SIDEX=8;
+var SIDEY=4
+var MAXNUM=15; //largest number represented... SIDEX*SIDEY should be 2*(MAXNUM+1)
+
+
+var K32=100;
+var XPAD=K32;
+var YPAD=50;
+var SELECTIONL=XPAD+SIDEX*K32+XPAD;
+var PALETTEL=SELECTIONL+2*XPAD;
+
+var paletteSelection=0;
+
+var state=0; //0: no tiles flipped; 1: 1 tile flipped; 2: 2 tiles flipped
+var prevFlipped0=[]; //coords of previous flipped tile
+var prevFlipped1=[]; //coords of second of two tiles flipped
+
+var grid=[]; //pieces of grid on screen
+var gridValue=[]; //numeric values of tiles
+var gridStatus=[]; //up or down or gone
+var front=[]; //front of tile
+
+var snd = new Audio("chime.wav"); 
+
+
+
+
+
+
+for(i=0;i<SIDEX;i++)
+{
+	grid[i]=[];
+	gridValue[i]=[];
+	gridStatus[i]=[];
+	front[i]=[];
+}
+function createCell(x,y,imgNo)
+{
+		var cellid="c"+x+"$"+y;
+		var imgName=gridimage[imgNo];
+		document.write("<div class='cell'  id='"+cellid+"'><img name='"+cellid+"' src="+imgName+"></div>");
+		thiscell=document.getElementById(cellid);
+		thiscell.style.left=x;
+		thiscell.style.top=y;
+}
+var blank="blank.png";
+var back="back.png";
+//arrays of image file names
+var maya=["maya0.png","maya1.png","maya2.png","maya3.png","maya4.png","maya5.png",
+"maya6.png","maya7.png","maya8.png","maya9.png","maya10.png","maya11.png",
+"maya12.png","maya13.png","maya14.png","maya15.png"];
+var arab=["arab0.png","arab1.png","arab2.png","arab3.png","arab4.png","arab5.png",
+"arab6.png","arab7.png","arab8.png","arab9.png","arab10.png","arab11.png",
+"arab12.png","arab13.png","arab14.png","arab15.png"];
+
+var shuffledRange=[]
+for (var i=0;i<(2*(MAXNUM+1));i++)
+	shuffledRange[i]=i;
+shuffle(shuffledRange);
+console.log(shuffledRange);
+
+var x,y,cellid,thiscell,n;
+for(var i=0;i<SIDEX;i++)
+	for(var j=0;j<SIDEY;j++)
+	{
+		x=XPAD+K32*i;
+		y=YPAD+K32*j;
+		cellid="c"+x+"$"+y;
+		document.write("<div class='cell'  id='"+cellid+"'><img name='"+cellid+"' src='back.png'></div>");
+		thiscell=document.getElementById(cellid);
+		thiscell.style.left=x;
+		thiscell.style.top=y;
+		grid[i][j]=thiscell;
+		gridStatus[i][j]="down";
+		n=j*SIDEX+i;
+		front[i][j]=image(scramble(n));
+		gridValue[i][j]=numval(scramble(n));
+	}
+function numval(m)
+{
+	if (m>MAXNUM)
+		return m-MAXNUM-1;
+	return m;
+}
+function image(m)
+{
+	console.log("m in image",m);
+	if (m>MAXNUM)
+		return arab[m-MAXNUM-1];
+	return maya[m];
+}
+function scramble(m)
+{
+	//stub for permute
+	return shuffledRange[m]; 
+}
+function shuffle (array) {
+  var i = 0
+    , j = 0
+    , temp = null
+
+  for (i = array.length - 1; i > 0; i -= 1) {
+    j = Math.floor(Math.random() * (i + 1))
+    temp = array[i]
+    array[i] = array[j]
+    array[j] = temp
+  }
+}
+
+/*
+function drawPalette(n)
+{
+		var x=PALETTEL+n*5*K32; //starting x coord for nth palette
+		var y=YPAD;
+		var imageOffset=18*n;
+		createCell(x,y,imageOffset);
+		createCell(x+K32,y,imageOffset+9);
+		drawPaletteRow(0,n,imageOffset+1);
+		drawPaletteRow(1,n,imageOffset+5);
+		drawPaletteRow(2,n,imageOffset+10);
+		drawPaletteRow(3,n,imageOffset+14);
+}
+
+		
+function drawPaletteRow(row,n,im)
+{
+	var x=PALETTEL+n*5*K32;
+	var y=YPAD+(row+1)*K32;
+	for(i=0;i<4;i++)
+	{
+		createCell(x,y,im+i);
+		x=x+K32;
+	}
+}
+*/
+
+//constructors and methods
+function setup()
+{
+	document.onmousedown=mouseDown;
+	
+	
+}
+function drawDirect(x,y,imageName)
+{
+	document.images[grid[x][y].id].src=imageName;
+}
+function mouseDown(e)
+{
+	if (!e) var e=window.event;
+	x=e.clientX;
+	y=e.clientY;
+	var gx=Math.floor((x-XPAD)/K32)
+	var gy=Math.floor((y-YPAD)/K32)
+	console.log(gx+":"+gy);
+	if (inWorkspace(gx,gy))
+	{
+		processWorkspace(gx,gy);
+		return false;
+	}
+	
+	
+	return true;
+}
+function inWorkspace(x,y)
+{
+	if ((x<0)||(x>(SIDEX-1))||(y<0)||(y>(SIDEY-1)))
+		return false;
+	return true;
+}
+function processWorkspace(x,y)
+{
+	console.log("processing click ",x,y);
+	console.log("state:",state);
+	if (gridStatus[x][y]=="gone") //ignore click on removed tile
+		return;
+	if (state==0)
+	{
+		flipTile(x,y);
+		prevFlipped0=[x,y];
+		state=1; //one tile flipped
+		return;
+	}
+	if (state==1)
+	{
+		if (isDown(x,y)) //ignore click on turned up tile
+		{
+			flipTile(x,y);
+			if (gridValue[x][y]==gridValue[prevFlipped0[0]][prevFlipped0[1]])
+			{
+				snd.play(); //signal match but delay the disappearance
+				setTimeout(function(){
+				removeTile(x,y);
+				removeTile(prevFlipped0[0],prevFlipped0[1]);},700);
+				state=0; //no tiles flipped
+				return;
+			}
+			//no match... leave flipped
+			state=2; //two tiles flipped
+			prevFlipped1=[x,y];
+			return;
+		}
+		return; //ignoring click on turned up tile
+	}
+	if (state==2) //flip last two tiles on any click
+	{
+		flipTile(prevFlipped0[0],prevFlipped0[1]);
+		flipTile(prevFlipped1[0],prevFlipped1[1]);
+		state=0;
+		return;
+	}
+	alert("bad state");
+	return;
+}
+//drawDirect(x,y,gridimage[paletteSelection]);
+function flipTile(x,y)
+{
+	if (gridStatus[x][y]=="up")
+	{
+		console.log("flipping tile down");
+		drawDirect(x,y,back);
+		gridStatus[x][y]="down";
+		return;
+	}
+	console.log("flipping tile up");
+	drawDirect(x,y,front[x][y]);
+	gridStatus[x][y]="up";
+}
+function isDown(x,y)
+{
+	return (gridStatus[x][y]=="down");
+}
+function removeTile(x,y)
+{
+	gridStatus[x][y]="gone";
+	drawDirect(x,y,blank);
+}
+/*
+function processWorkspace(x,y)
+{
+	drawDirect(x,y,gridimage[paletteSelection]);
+}
+*/
+/*
+function inPalette(n,x,y)
+{
+	var pXOffset=n*5;
+	if ((x<SIDE+3+pXOffset)||(x>SIDE+6+pXOffset)||(y<0)||(y>4))
+		return false;
+	if((y==0)&&(x>(SIDE+4+pXOffset)))
+		return false;
+	//console.log("in palette");
+	return true;
+}
+
+function processPalette(n,x,y)
+{
+	paletteSelection=paletteItem(n,x,y);
+	//drawDirect(SELECTIONL,YPAD,gridimage[paletteSelection]);
+	cellid="c"+SELECTIONL+"$"+YPAD;
+	//console.log(cellid);
+	//thiscell=document.getElementById(cellid);
+	//thiscell.src=gridimage[paletteSelection];
+	document.getElementsByName(cellid)[0].src=gridimage[paletteSelection];
+}
+function paletteItem(n,x,y)
+{
+	//console.log(x);
+	var pXOffset=n*5;
+	var relativeX=x-SIDE-3-pXOffset;
+	//console.log(relativeX);
+	//console.log(y);
+	//var paletteLookup=[["b.png","w.png"],
+	//["b1.png","b2.png","b3.png","b4.png"],
+	//["b1f.png","b2f.png","b3f.png","b4f.png"],
+	//["wb1.png","wb2.png","wb3.png","wb4.png"],
+	//["wb1f.png","wb2f.png","wb3f.png","wb4f.png"]];
+	var paletteLookup=[[0,9],
+	[1,2,3,4],
+	[5,6,7,8],
+	[10,11,12,13],
+	[14,15,16,17]];
+	var result= paletteLookup[y][relativeX]+n*18;
+	//console.log(result);
+	return result;
+}
+*/
+/*
+
+function randomCell()
+{
+	return ({"x": Math.floor(Math.random()*SIDE),"y":Math.floor(Math.random()*SIDE)});
+}
+function randomImage()
+{
+	return Math.floor(Math.random()*18);
+}
+*/
+/*
+function tweakCellKaleidoscope()
+{
+	var cell=randomCell();
+	var newImage=randomImage();
+	
+	//gridstatus[cell.x][cell.y]=newImage;
+	drawDirect(cell.x,cell.y,gridimage[newImage]);
+	//gridstatus[SIDE-cell.x-1][cell.y]=flipH(newImage);
+	drawDirect(SIDE-cell.x-1,cell.y,gridimage[flipH(newImage)]);
+	//gridstatus[cell.x][SIDE-cell.y-1]=flipV(newImage);
+	drawDirect(cell.x,SIDE-cell.y-1,gridimage[flipV(newImage)]);
+	//gridstatus[SIDE-cell.x-1][SIDE-cell.y-1]=flipH(flipV(newImage));
+	drawDirect(SIDE-cell.x-1,SIDE-cell.y-1,gridimage[flipH(flipV(newImage))]);
+	if (cell.x!=cell.y)
+	{
+		var diag=flipD(newImage);
+		//gridstatus[cell.y][cell.x]=diag;
+		drawDirect(cell.y,cell.x,gridimage[diag]);
+		//gridstatus[SIDE-cell.y-1][cell.x]=flipH(diag);
+		drawDirect(SIDE-cell.y-1,cell.x,gridimage[flipH(diag)]);
+		//gridstatus[cell.y][SIDE-cell.x-1]=flipV(diag);
+		drawDirect(cell.y,SIDE-cell.x-1,gridimage[flipV(diag)]);
+		//gridstatus[SIDE-cell.y-1][SIDE-cell.x-1]=flipV(flipH(diag));
+		drawDirect(SIDE-cell.y-1,SIDE-cell.x-1,gridimage[flipV(flipH(diag))]);
+	}		
+		
+	//refresh();
+}
+function flipH(n)
+{
+	var stem=n%18;
+	var root=(n-stem);
+	var flipHTable=[0,5,6,7,8,1,2,3,4,9,14,15,16,17,10,11,12,13];
+	return flipHTable[stem]+root;
+}
+function flipV(n)
+{
+	var stem=n%18;
+	var root=(n-stem);
+	var flipVTable=[0,7,8,5,6,3,4,1,2,9,16,17,14,15,12,13,10,11];
+	return flipVTable[stem]+root;
+}
+function flipD(n) //diagonal
+{
+	var stem=n%18;
+	var root=(n-stem);
+	var flipDTable=[0,8,5,6,7,2,3,4,1,9,17,14,15,16,11,12,13,10];
+	return flipDTable[stem]+root;
+}
+*/
+/*
+function step()
+{
+	if (running)
+	{
+		tweakCellKaleidoscope();
+		setTimeout("step()",1000);
+	}
+}
+function reset()
+{
+	var capture=[[8,7,0,0,0,13,14,6],[5,6,0,0,1,9,10,2],[0,0,0,0,13,14,9,9],[0,1,2,1,9,10,9,9],[0,4,3,13,9,9,14,9],[0,0,0,17,9,9,10,9],[0,0,0,13,9,9,9,9],[0,0,0,17,9,9,9,9]];
+	for(i=0;i<SIDE;i++)
+		for(j=0;j<SIDE;j++)
+		{
+			drawDirect(i,j,gridimage[capture[i][j]]);
+		}
+}
+*/
+function clr()
+{
+	for(i=0;i<SIDE;i++)
+			for(j=0;j<SIDE;j++)
+				drawDirect(i,j,gridimage[9]);
+			
+
+}
+/*
+function toggleGridLines()
+{
+	var cellid;
+	var thiscell;
+	var x0;
+	var y0;
+	var x;
+	var y;
+	var size;
+	if (gridOn)
+	{
+		size=32;
+		gridOn=false;
+	}
+	else
+	{
+		size=33;
+		gridOn=true;
+	}
+	for(i=0;i<SIDE;i++)
+		for(j=0;j<SIDE;j++)
+		{
+			x0=XPAD+K32*i;
+			y0=YPAD+K32*j;
+			cellid="c"+x0+"$"+y0;
+			thiscell=document.getElementById(cellid);
+			x=XPAD+size*i;
+			y=YPAD+size*j;
+			thiscell.style.left=x;
+			thiscell.style.top=y;
+		}
+}
+
+
+function go()
+{
+	pgob=document.getElementById("gob");
+	
+	if(!running)
+	{
+		pgob.value="stop";
+		running=true;
+		clr();
+		step();
+		
+	}
+	else 
+	{
+		pgob.value="kaleidoscope";
+		running=false;
+	}
+}
+*/
+//-->
+</script>
+
+
+<div class="text">
+
+<h2>Mayan Matching Game</h2>
+When you click a tile it will flip over. Try to match Mayan and Arabic numbers to make all the tiles go away.
+		
+
+</div>
+
+</body>
+</html>
