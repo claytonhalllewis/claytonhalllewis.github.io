@@ -1,0 +1,354 @@
+<html>
+<head><title>Happy New Year 2019!</title>
+		<style type="text/css">
+		.text
+			{
+				float: right;
+				position: relative;
+				top: 200px;
+				width: 45%;
+				font-family:Arial, Helvetica, sans-serif
+			}
+			.title
+			{
+				color:red;
+			}
+			.cell
+			{
+				position:absolute;
+			}
+			
+		</style>
+
+
+			
+</head>
+<body onload="setup()" >
+<script language="JavaScript" type="text/javascript">
+<!--
+//idea: click somewhere to launch top
+//lifetime computed from location in a partially random way
+//background pattern 2019 revealed as cells are visited
+
+
+//add sound for hitting pin and for other movement
+//need very short sound for movement
+//need to detect when hit pin and tie sound to that
+
+//now just get a better pin image!
+
+
+//const SIDE=8; //side of board
+const TOPMARGIN=200;
+const LEFTMARGIN=200;
+const ROWS=5;
+const COLS=8;
+const HEXSIDE=40; //side of hex
+const HEXWIDTH=HEXSIDE*(7/4.0); 
+const HEXHORIZOFFSET=HEXSIDE*(7/8.);
+const HEXVERTOFFSET=HEXSIDE*(3/2.);
+var lives; //how long top runs
+
+var DELAY=200; //controls speed of motion
+
+//var pGobutton;
+var pToken;
+var running;
+
+var upX,upY, upT, downX,downY,downT;
+
+var tokenX,tokenY,pToken;
+
+var grid=[];
+var gridType=[];
+//var mask=[];
+//var maskType=[];
+for(i=0;i<COLS;i++)
+{
+	grid[i]=[];
+	gridType[i]=[];
+	//mask[i]=[];
+	//maskType[i]=[];
+}
+//const typeList=["hideHex.png", "reveal.png","top.png"];
+//const maskList=["nullHex.png","redHex.png"];
+//directions 0:ne,1:e,2:se,3:sw,4:w,5:nw
+//const CONNECTORS=[[],[3,5],[0,2],[1,3,5],[0,2,4]];
+
+
+
+const YDELTA=[-1,0,1,1,0,-1];
+//for even rows
+const XDELTAEVEN=[1,1,1,0,-1,0];
+const XDELTAODD=[0,1,0,-1,-1,-1];
+
+
+//function drawBoard()
+//{
+	document.write('<img id="background" style="POSITION:absolute; LEFT: 200; TOP:150; WIDTH: 600;HEIGHT:400" src="background.png">');
+	var cellid,thiscell;
+
+for(var i=0;i<COLS;i++)
+	for(var j=0;j<ROWS;j++)
+	{
+		x=LEFTMARGIN+HEXWIDTH*i+isEven(j)*HEXHORIZOFFSET;//even rows are offset
+		y=TOPMARGIN+HEXVERTOFFSET*j;
+		cellid="c"+i+"$"+j;
+		document.write("<div style='position:absolute' id='"+cellid+"'><img name='"+cellid+"' src='hideHex.png'></div>");
+		thiscell=document.getElementById(cellid);
+		thiscell.style.left=x;
+		thiscell.style.top=y;
+		grid[i][j]=thiscell;
+		gridType[i][j]=0; //0=blankHex, 1=hexLeft, 2=hexRight
+		
+	}
+//}
+function getXDelta(pos,dir)
+{
+	if (isEven(pos[1]))
+		return XDELTAEVEN[dir];
+	return XDELTAODD[dir];
+}
+function getNbr(pos,dir)
+{
+	var nx=pos[0]+getXDelta(pos,dir);
+	var ny=pos[1]+YDELTA[dir];
+	if ((nx<0)||(ny<0)||(nx>(COLS-1))||(ny>(ROWS-1))) 
+		return false; //no neighbor
+	return [nx,ny];
+}
+	
+
+function canMove(pos,dir)
+{
+	console.log("in canMove pos is ",pos);
+	//if (!hasConnector(pos,dir))
+	//	{   console.log("no connector on current loc");
+	//		return false;
+	//	}
+	if (getNbr(pos,dir)==false)
+	{
+		console.log("no neighbor");
+		return false
+	}
+	var nbr=getNbr(pos,dir);
+	//if (hasConnector(nbr,opposite(dir)))
+	return true;
+	//console.log("no matching connector in neighbor");
+	//return false
+}
+
+function isEven(n)
+{
+	if (n%2==0)
+		return 1;
+	return 0;
+}
+function setup()
+{
+	document.onmousedown=mouseDown;
+	document.onmouseup=mouseUp;
+	
+	pToken=document.getElementById("token");
+	putToken(0,4);
+	//drawBoard();
+	running=false;
+}
+function mouseDown(e)
+{
+	if (!e) var e=window.event;
+	var x=e.clientX;
+	var y=e.clientY;
+	var gy=Math.floor((y-TOPMARGIN)/HEXVERTOFFSET);
+	var gx=Math.floor((x-LEFTMARGIN-isEven(gy)*HEXHORIZOFFSET)/HEXWIDTH);
+	
+	//alert(gx+":"+gy)
+	if ((gx<0)||(gy<0)||(gx>(COLS-1))||(gy>(ROWS-1))) 
+	{
+		
+		return true;
+	}
+	//rotate(gx,gy);
+	//startTop(gx,gy);
+	downX=gx;downY=gy;
+	var d = new Date();
+  	downT=d.getTime();
+  	console.log("down ",downT);
+	return false;
+}
+function mouseUp(e)
+{
+	if (!e) var e=window.event;
+	var x=e.clientX;
+	var y=e.clientY;
+	var gy=Math.floor((y-TOPMARGIN)/HEXVERTOFFSET);
+	var gx=Math.floor((x-LEFTMARGIN-isEven(gy)*HEXHORIZOFFSET)/HEXWIDTH);
+	
+	//alert(gx+":"+gy)
+	if ((gx<0)||(gy<0)||(gx>(COLS-1))||(gy>(ROWS-1))) 
+	{
+		
+		return true;
+	}
+	//rotate(gx,gy);
+	//startTop(gx,gy);
+	upX=gx;upY=gy;
+	var d = new Date();
+  	upT=d.getTime();
+  	console.log("up ",upT);
+  	swipe();
+	return false;
+}
+function startTop(gx,gy)
+{
+	lives=10*(ROWS-gy)*gx+5;
+	moveTop();
+}
+
+
+
+
+
+
+
+function delay(n)
+{
+	return Math.max(10,200-lives);
+}
+function swipe()
+{
+	lives=10000*Math.sqrt((upX-downX)*(upX-downX)+(upY-downY)*(upY-downY))/(upT-downT);
+	console.log("lives ", lives);
+	moveTop();
+}
+function moveTop()
+{
+	var dir;
+	if(lives>0)
+	{
+		for(var i=0;i<20;i++) //try 20 times
+		{
+			dir=Math.floor(Math.random()*6);
+			console.log("trying dir ",dir);
+			if (canMove([tokenX,tokenY],dir))
+			{
+				tokenX=tokenX+getXDelta([tokenX,tokenY],dir);
+				tokenY=tokenY+YDELTA[dir];
+				if (dir>2)
+					pToken.src="topTilt.png";
+				else pToken.src="top.png";
+				putToken(tokenX,tokenY);
+				if (gridType[tokenX][tokenY]!=1)
+				{
+					//document.getElementById('chime2').play();
+					playHit();
+					gridType[tokenX][tokenY]=1;
+					document.images[grid[tokenX][tokenY].id].src="reveal.png";
+				}
+				else playMove()
+				
+				break;
+			}
+			console.log("can't move");
+		}
+		lives=lives-1;
+		setTimeout("moveTop()",delay(lives));	//keep going
+		return;
+	}
+	//alert("no lives");
+}
+const context = new window.AudioContext();
+
+function playHit() {
+    const successNoise = context.createOscillator();
+    successNoise.frequency = "100";
+    successNoise.type = "sine";
+    //successNoise.frequency.exponentialRampToValueAtTime(
+    //    300,
+    //    context.currentTime + 0.05
+    //);
+    //successNoise.frequency.exponentialRampToValueAtTime(
+    //    400,
+    //    context.currentTime + 0.15
+    //);
+
+    successGain = context.createGain();
+    var now = context.currentTime
+    successGain.gain.setValueAtTime(10,now);
+    successGain.gain.exponentialRampToValueAtTime(
+        .001,
+       context.currentTime + 0.3
+    );
+
+    //successFilter = context.createBiquadFilter("bandpass");
+    //successFilter.Q = 0.01;
+
+    successNoise
+      //  .connect(successFilter)
+        .connect(successGain)
+        .connect(context.destination);
+    successNoise.start();
+    successNoise.stop(context.currentTime + 0.2);
+}
+
+function playMove() {
+    const hitNoise = context.createOscillator();
+    hitNoise.frequency = "200";
+    hitNoise.type = "sine";
+    hitNoise.frequency.exponentialRampToValueAtTime(
+        300,
+        context.currentTime + 0.05
+    );
+    hitNoise.frequency.exponentialRampToValueAtTime(
+        500,
+        context.currentTime + 0.15
+    );
+
+    hitGain = context.createGain();
+    //hitGain.gain.exponentialRampToValueAtTime(
+    //    0.01,
+    //    context.currentTime + 0.3
+    //);
+
+    hitFilter = context.createBiquadFilter("bandpass");
+    hitFilter.Q = 0.01;
+
+    hitNoise
+        .connect(hitFilter)
+        .connect(hitGain)
+        .connect(context.destination);
+    hitNoise.start();
+    hitNoise.stop(context.currentTime + 0.3);
+}
+
+
+
+function putToken(tx,ty)
+{
+	var nty=TOPMARGIN+HEXVERTOFFSET*ty;
+	var ntx=LEFTMARGIN+HEXWIDTH*tx+isEven(ty)*HEXHORIZOFFSET;//even rows are offset
+	
+	pToken.style.left=ntx;
+	pToken.style.top=nty;
+	tokenX=tx;
+	tokenY=ty;
+	//document.images[grid[tokenX][tokenY].id].src="reveal.png";
+	//addMask(tx,ty,1); //add red mask
+}
+
+//-->
+</script>
+
+<img id="token" style="POSITION: absolute; WIDTH: 60;HEIGHT:60" src="top.png">
+
+<div class="text">
+<div class="title">
+
+<p>Happy New Year from the Cundiff Lewis family!<p>
+</div>
+<p>To spin the top and knock down the pins, swipe across the field of pins as fast as you can... the faster you swipe, the more spin you get. But if you start or end your swipe outside the field of pins, the swipe won't work. Can you knock down all the pins?
+</div>
+
+
+</body>
+</html>
