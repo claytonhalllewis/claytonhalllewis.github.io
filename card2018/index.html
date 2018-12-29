@@ -257,10 +257,12 @@ function moveTop()
 	}
 	//alert("no lives");
 }
-const context = new window.AudioContext();
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const context = new AudioContext();
+
 
 function playHit() {
-    const successNoise = context.createOscillator();
+    var successNoise = context.createOscillator();
     successNoise.frequency = "100";
     successNoise.type = "sine";
     //successNoise.frequency.exponentialRampToValueAtTime(
@@ -272,7 +274,7 @@ function playHit() {
     //    context.currentTime + 0.15
     //);
 
-    successGain = context.createGain();
+    var successGain = context.createGain();
     var now = context.currentTime
     successGain.gain.setValueAtTime(10,now);
     successGain.gain.exponentialRampToValueAtTime(
@@ -282,11 +284,11 @@ function playHit() {
 
     //successFilter = context.createBiquadFilter("bandpass");
     //successFilter.Q = 0.01;
-
-    successNoise
-      //  .connect(successFilter)
-        .connect(successGain)
-        .connect(context.destination);
+    //console.log("context",context);
+    //console.log("context.destination",context.destination);
+    //console.log("sN.c",successNoise.connect(successGain));
+    successNoise.connect(successGain);
+    successGain.connect(context.destination);
     successNoise.start();
     successNoise.stop(context.currentTime + 0.2);
 }
@@ -313,10 +315,9 @@ function playMove() {
     hitFilter = context.createBiquadFilter("bandpass");
     hitFilter.Q = 0.01;
 
-    hitNoise
-        .connect(hitFilter)
-        .connect(hitGain)
-        .connect(context.destination);
+    hitNoise.connect(hitFilter);
+    hitFilter.connect(hitGain);
+    hitGain.connect(context.destination);
     hitNoise.start();
     hitNoise.stop(context.currentTime + 0.3);
 }
