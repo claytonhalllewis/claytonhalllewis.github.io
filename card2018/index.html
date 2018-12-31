@@ -57,6 +57,8 @@ var DELAY=200; //controls speed of motion
 var pToken;
 var running;
 
+var touching=false;
+
 var upX,upY, upT, downX,downY,downT;
 
 var tokenX,tokenY,pToken;
@@ -170,10 +172,13 @@ function touchStart(e)
 	x= e.touches[0].clientX;
   	y = e.touches[0].clientY;
   	console.log("touchStart",x,y);
+  	touching=true;
   	processDown(x,y);
 }
 function mouseDown(e)
 {
+	if (touching)
+		return;
 	if (!e) var e=window.event;
 	var x=e.clientX;
 	var y=e.clientY;
