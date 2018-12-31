@@ -156,7 +156,7 @@ function setup()
 	document.onmouseup=mouseUp;
 	//document.ontouchstart=touchStart;
 	document.ontouchend=touchEnd;
-	document.addEventListener("touchstart",touchStart,{passive:false});
+	document.addEventListener("touchstart",touchStart,{passive:true});
 	
 	pToken=document.getElementById("token");
 	putToken(0,4);
