@@ -200,7 +200,7 @@ function processDown(x,y)
 function touchEnd(e)
 {
 	if (!e) var e=window.event;
-	e.preventDefault();
+	//e.preventDefault();
 	x= e.changedTouches[0].clientX;
   	y = e.changedTouches[0].clientY;
   	console.log("touchEnd",x,y);
