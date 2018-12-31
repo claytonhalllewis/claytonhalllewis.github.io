@@ -280,7 +280,7 @@ function playHit() {
 
     var successGain = context.createGain();
     var now = context.currentTime
-    successGain.gain.setValueAtTime(5,now);
+    successGain.gain.setValueAtTime(3,now);
     successGain.gain.exponentialRampToValueAtTime(
         .001,
        context.currentTime + 0.3
