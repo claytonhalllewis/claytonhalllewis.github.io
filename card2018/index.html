@@ -169,7 +169,7 @@ function touchStart(e)
 	x= e.touches[0].clientX;
   	y = e.touches[0].clientY;
   	console.log("touchStart",x,y);
-  	return processDown(x,y);
+  	processDown(x,y);
 }
 function mouseDown(e)
 {
@@ -204,7 +204,7 @@ function touchEnd(e)
 	x= e.changedTouches[0].clientX;
   	y = e.changedTouches[0].clientY;
   	console.log("touchEnd",x,y);
-  	return processUp(x,y);
+  	processUp(x,y);
 }
 function mouseUp(e)
 {
