@@ -21,7 +21,7 @@
 			}
 			
 		</style>
-
+<meta name="viewport" content="width=device-width,user-scalable=no">
 
 			
 </head>
@@ -83,7 +83,10 @@ const YDELTA=[-1,0,1,1,0,-1];
 //for even rows
 const XDELTAEVEN=[1,1,1,0,-1,0];
 const XDELTAODD=[0,1,0,-1,-1,-1];
-
+document.body.addEventListener('touchmove', function(event) //disable default response to sweep
+{
+  event.preventDefault();
+}, false); 
 
 //function drawBoard()
 //{
@@ -151,18 +154,31 @@ function setup()
 {
 	document.onmousedown=mouseDown;
 	document.onmouseup=mouseUp;
+	document.ontouchstart=touchStart;
+	document.ontouchend=touchEnd;
 	
 	pToken=document.getElementById("token");
 	putToken(0,4);
 	//drawBoard();
 	running=false;
 }
+function touchStart(e)
+{
+	if (!e) var e=window.event;
+	e.preventDefault();
+	x= e.touches[0].clientX;
+  	y = e.touches[0].clientY;
+  	return processDown(x,y);
+}
 function mouseDown(e)
 {
-	console.log("in down");
 	if (!e) var e=window.event;
 	var x=e.clientX;
 	var y=e.clientY;
+	return processDown(x,y);
+}
+function processDown(x,y)
+{
 	var gy=Math.floor((y-TOPMARGIN)/HEXVERTOFFSET);
 	var gx=Math.floor((x-LEFTMARGIN-isEven(gy)*HEXHORIZOFFSET)/HEXWIDTH);
 	
@@ -180,11 +196,23 @@ function mouseDown(e)
   	console.log("down ",downT);
 	return false;
 }
+function touchEnd(e)
+{
+	if (!e) var e=window.event;
+	e.preventDefault();
+	x= e.changedTouches[0].clientX;
+  	y = e.changedTouches[0].clientY;
+  	return processUp(x,y);
+}
 function mouseUp(e)
 {
 	if (!e) var e=window.event;
 	var x=e.clientX;
 	var y=e.clientY;
+	return processUp(x,y);
+}
+function processUp(x,y)
+{
 	var gy=Math.floor((y-TOPMARGIN)/HEXVERTOFFSET);
 	var gx=Math.floor((x-LEFTMARGIN-isEven(gy)*HEXHORIZOFFSET)/HEXWIDTH);
 	
