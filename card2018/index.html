@@ -165,7 +165,7 @@ function setup()
 function touchStart(e)
 {
 	if (!e) var e=window.event;
-	e.preventDefault();
+	//e.preventDefault();
 	x= e.touches[0].clientX;
   	y = e.touches[0].clientY;
   	console.log("touchStart",x,y);
