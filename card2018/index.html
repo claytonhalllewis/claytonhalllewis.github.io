@@ -154,8 +154,9 @@ function setup()
 {
 	document.onmousedown=mouseDown;
 	document.onmouseup=mouseUp;
-	document.ontouchstart=touchStart;
+	//document.ontouchstart=touchStart;
 	document.ontouchend=touchEnd;
+	document.addEventListener("touchstart",touchStart,{passive:false});
 	
 	pToken=document.getElementById("token");
 	putToken(0,4);
@@ -165,7 +166,7 @@ function setup()
 function touchStart(e)
 {
 	if (!e) var e=window.event;
-	//e.preventDefault();
+	e.preventDefault();
 	x= e.touches[0].clientX;
   	y = e.touches[0].clientY;
   	console.log("touchStart",x,y);
