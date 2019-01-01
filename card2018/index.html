@@ -160,7 +160,8 @@ function setup()
 	document.onmousedown=mouseDown;
 	document.onmouseup=mouseUp;
 	//document.ontouchstart=touchStart;
-	document.ontouchend=touchEnd;
+	//document.ontouchend=touchEnd;
+	document.addEventListener("touchend",touchEnd,{passive:false});
 	document.addEventListener("touchstart",touchStart,{passive:false});
 	
 	pToken=document.getElementById("token");
