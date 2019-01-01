@@ -130,14 +130,14 @@ function getNbr(pos,dir)
 
 function canMove(pos,dir)
 {
-	console.log("in canMove pos is ",pos);
+	//console.log("in canMove pos is ",pos);
 	//if (!hasConnector(pos,dir))
 	//	{   console.log("no connector on current loc");
 	//		return false;
 	//	}
 	if (getNbr(pos,dir)==false)
 	{
-		console.log("no neighbor");
+		//console.log("no neighbor");
 		return false
 	}
 	var nbr=getNbr(pos,dir);
@@ -178,6 +178,7 @@ function touchStart(e)
 }
 function mouseDown(e)
 {
+	console.log("mouse down");
 	if (touching)
 		return;
 	if (!e) var e=window.event;
@@ -216,6 +217,7 @@ function touchEnd(e)
 function mouseUp(e)
 {
 	if (!e) var e=window.event;
+	consol.log('mouse up');
 	var x=e.clientX;
 	var y=e.clientY;
 	return processUp(x,y);
@@ -270,7 +272,7 @@ function moveTop()
 		for(var i=0;i<20;i++) //try 20 times
 		{
 			dir=Math.floor(Math.random()*6);
-			console.log("trying dir ",dir);
+			//console.log("trying dir ",dir);
 			if (canMove([tokenX,tokenY],dir))
 			{
 				tokenX=tokenX+getXDelta([tokenX,tokenY],dir);
@@ -290,7 +292,7 @@ function moveTop()
 				
 				break;
 			}
-			console.log("can't move");
+			//console.log("can't move");
 		}
 		lives=lives-1;
 		setTimeout("moveTop()",delay(lives));	//keep going
