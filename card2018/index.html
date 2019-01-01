@@ -214,6 +214,7 @@ function touchEnd(e)
 	x= e.changedTouches[0].clientX;
   	y = e.changedTouches[0].clientY;
   	context = new AudioContext(); //has to be in response to user action
+  	audioContext.resume();
   	console.log("touchEnd",x,y);
   	return processUp(x,y);
 }
