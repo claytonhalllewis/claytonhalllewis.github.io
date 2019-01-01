@@ -174,7 +174,7 @@ function touchStart(e)
   	y = e.touches[0].clientY;
   	console.log("touchStart",x,y);
   	touching=true;
-  	processDown(x,y);
+  	return processDown(x,y);
 }
 function mouseDown(e)
 {
@@ -191,7 +191,7 @@ function processDown(x,y)
 	var gy=Math.floor((y-TOPMARGIN)/HEXVERTOFFSET);
 	var gx=Math.floor((x-LEFTMARGIN-isEven(gy)*HEXHORIZOFFSET)/HEXWIDTH);
 	
-	//alert(gx+":"+gy)
+	console.log("down",gx,gy);
 	if ((gx<0)||(gy<0)||(gx>(COLS-1))||(gy>(ROWS-1))) 
 	{
 		
@@ -212,7 +212,7 @@ function touchEnd(e)
 	x= e.changedTouches[0].clientX;
   	y = e.changedTouches[0].clientY;
   	console.log("touchEnd",x,y);
-  	processUp(x,y);
+  	return processUp(x,y);
 }
 function mouseUp(e)
 {
@@ -227,7 +227,8 @@ function processUp(x,y)
 	var gy=Math.floor((y-TOPMARGIN)/HEXVERTOFFSET);
 	var gx=Math.floor((x-LEFTMARGIN-isEven(gy)*HEXHORIZOFFSET)/HEXWIDTH);
 	
-	//alert(gx+":"+gy)
+	console.log("up",gx,gy);
+
 	if ((gx<0)||(gy<0)||(gx>(COLS-1))||(gy>(ROWS-1))) 
 	{
 		
