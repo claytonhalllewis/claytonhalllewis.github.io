@@ -266,7 +266,8 @@ function startTop(gx,gy)
 
 function delay(n)
 {
-	return Math.max(10,200-lives);
+	return Math.max(10,300/(n+1));
+	//return Math.max(10,200-lives);
 }
 function swipe()
 {
