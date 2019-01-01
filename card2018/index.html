@@ -188,7 +188,7 @@ function mouseDown(e)
 }
 function processDown(x,y)
 {
-	var gy=Math.floor((y-TOPMARGIN+window.scrollY)/HEXVERTOFFSET);
+	var gy=Math.floor((y-TOPMARGIN-window.scrollY)/HEXVERTOFFSET);
 	var gx=Math.floor((x-LEFTMARGIN-isEven(gy)*HEXHORIZOFFSET)/HEXWIDTH);
 	
 	console.log("down",gx,gy);
@@ -224,7 +224,7 @@ function mouseUp(e)
 }
 function processUp(x,y)
 {
-	var gy=Math.floor((y-TOPMARGIN+window.scrollY)/HEXVERTOFFSET);
+	var gy=Math.floor((y-TOPMARGIN-window.scrollY)/HEXVERTOFFSET);
 	var gx=Math.floor((x-LEFTMARGIN-isEven(gy)*HEXHORIZOFFSET)/HEXWIDTH);
 	
 	console.log("up",gx,gy);
