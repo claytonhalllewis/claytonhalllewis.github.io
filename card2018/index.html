@@ -252,11 +252,11 @@ function processUp(x,y)
   	swipe();
 	return false;
 }
-function startTop(gx,gy)
-{
-	lives=10*(ROWS-gy)*gx+5;
-	moveTop();
-}
+//function startTop(gx,gy)
+//{
+//	lives=10*(ROWS-gy)*gx+5;
+//	moveTop();
+//}
 
 
 
@@ -266,12 +266,12 @@ function startTop(gx,gy)
 
 function delay(n)
 {
-	return Math.floor(Math.max(10,800/(.5*n+.0001)));
+	return Math.max(10,1000/(2*n+.0001));
 	//return Math.max(10,200-lives);
 }
 function swipe()
 {
-	lives=10000*Math.sqrt((upX-downX)*(upX-downX)+(upY-downY)*(upY-downY))/(upT-downT);
+	lives=Math.floor(10000*Math.sqrt((upX-downX)*(upX-downX)+(upY-downY)*(upY-downY))/(upT-downT));
 	console.log("lives ", lives);
 	moveTop();
 }
