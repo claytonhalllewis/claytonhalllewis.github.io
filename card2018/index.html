@@ -53,6 +53,9 @@ var lives; //how long top runs
 
 var DELAY=200; //controls speed of motion
 
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+var context;
+
 //var pGobutton;
 var pToken;
 var running;
@@ -210,6 +213,7 @@ function touchEnd(e)
 	//e.preventDefault();
 	x= e.changedTouches[0].clientX;
   	y = e.changedTouches[0].clientY;
+  	context = new AudioContext(); //has to be in response to user action
   	console.log("touchEnd",x,y);
   	return processUp(x,y);
 }
@@ -219,6 +223,7 @@ function mouseUp(e)
 	console.log('mouse up');
 	var x=e.clientX;
 	var y=e.clientY;
+	context = new AudioContext(); //has to be in response to user action
 	return processUp(x,y);
 }
 function processUp(x,y)
@@ -300,8 +305,8 @@ function moveTop()
 	}
 	//alert("no lives");
 }
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-const context = new AudioContext();
+
+
 
 
 function playHit() {
