@@ -185,6 +185,7 @@ function mouseDown(e)
 	if (!e) var e=window.event;
 	var x=e.clientX;
 	var y=e.clientY;
+	context.resume();
 	return processDown(x,y);
 }
 function processDown(x,y)
