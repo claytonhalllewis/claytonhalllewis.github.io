@@ -161,7 +161,7 @@ function setup()
 	//document.addEventListener("touchend",touchEnd,{passive:true});
 	document.body.addEventListener("touchstart",touchStart,{passive:false});
 	context = new AudioC(); 
-	unlockAudio();
+	//unlockAudio(); //is this necessary?
 	
 	pToken=document.getElementById("token");
 	putToken(0,4);
