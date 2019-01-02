@@ -48,7 +48,7 @@ var lives; //how long top runs
 
 //var DELAY=200; //controls speed of motion
 
-const AudioContext = window.AudioContext || window.webkitAudioContext;
+var AudioC = window.AudioContext || window.webkitAudioContext;
 var context;
 //var context = new AudioContext(); 
 
@@ -160,7 +160,7 @@ function setup()
 	document.addEventListener("touchend",touchEnd,{passive:false});
 	//document.addEventListener("touchend",touchEnd,{passive:true});
 	document.addEventListener("touchstart",touchStart,{passive:false});
-	context = new AudioContext(); 
+	context = new AudioC(); 
 	
 	pToken=document.getElementById("token");
 	putToken(0,4);
