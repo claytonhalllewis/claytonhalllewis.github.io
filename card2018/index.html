@@ -217,8 +217,9 @@ function touchEnd(e)
   	else console.log("not trusted");
   	console.log("touchEnd",x,y);
   	//context = new AudioContext(); //has to be in response to user action
-  	context.resume();
+  	
   	playMove(); //try to get it going
+  	context.resume();
   	console.log("context",context);
   	
   	return processUp(x,y);
