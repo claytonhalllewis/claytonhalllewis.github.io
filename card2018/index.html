@@ -160,6 +160,7 @@ function setup()
 	document.addEventListener("touchend",touchEnd,{passive:false});
 	//document.addEventListener("touchend",touchEnd,{passive:true});
 	document.addEventListener("touchstart",touchStart,{passive:false});
+	context = new AudioContext(); 
 	
 	pToken=document.getElementById("token");
 	putToken(0,4);
@@ -215,8 +216,8 @@ function touchEnd(e)
   		console.log("trusted");
   	else console.log("not trusted");
   	console.log("touchEnd",x,y);
-  	context = new AudioContext(); //has to be in response to user action
-  	context.resume();
+  	//context = new AudioContext(); //has to be in response to user action
+  	//context.resume();
   	playMove(); //try to get it going
   	console.log("context",context);
   	
@@ -228,8 +229,8 @@ function mouseUp(e)
 	console.log('mouse up');
 	var x=e.clientX;
 	var y=e.clientY;
-	context = new AudioContext(); //has to be in response to user action
-	context.resume(); //has to be in response to user action
+	//context = new AudioContext(); //has to be in response to user action
+	//context.resume(); //has to be in response to user action
 	return processUp(x,y);
 }
 function processUp(x,y)
