@@ -155,8 +155,7 @@ function setup()
 {
 	document.onmousedown=mouseDown; //experimenting to see if these 2 events interfere
 	document.onmouseup=mouseUp;
-	//document.ontouchstart=touchStart;
-	//document.ontouchend=touchEnd;
+	
 	document.body.addEventListener("touchend",touchEnd,{passive:false});
 	//document.addEventListener("touchend",touchEnd,{passive:true});
 	document.body.addEventListener("touchstart",touchStart,{passive:false});
@@ -200,8 +199,7 @@ function processDown(x,y)
 		
 		return true;
 	}
-	//rotate(gx,gy);
-	//startTop(gx,gy);
+	
 	downX=gx;downY=gy;
 	var d = new Date();
   	downT=d.getTime();
@@ -214,13 +212,10 @@ function touchEnd(e)
 	e.preventDefault();
 	x= e.changedTouches[0].clientX;
   	y = e.changedTouches[0].clientY;
-  	if (e.isTrusted)
-  		console.log("trusted");
+  	
   	else console.log("not trusted");
   	console.log("touchEnd",x,y);
-  	//context = new AudioContext(); //has to be in response to user action
   	
-  	//playMove(); //try to get it going
   	context.resume();
   	console.log("context",context);
   	
@@ -247,8 +242,7 @@ function processUp(x,y)
 		
 		return true;
 	}
-	//rotate(gx,gy);
-	//startTop(gx,gy);
+	
 	upX=gx;upY=gy;
 	var d = new Date();
   	upT=d.getTime();
@@ -256,11 +250,7 @@ function processUp(x,y)
   	swipe();
 	return false;
 }
-//function startTop(gx,gy)
-//{
-//	lives=10*(ROWS-gy)*gx+5;
-//	moveTop();
-//}
+
 
 
 
@@ -298,7 +288,7 @@ function moveTop()
 				putToken(tokenX,tokenY);
 				if (gridType[tokenX][tokenY]!=1)
 				{
-					//document.getElementById('chime2').play();
+					
 					playHit();
 					gridType[tokenX][tokenY]=1;
 					document.images[grid[tokenX][tokenY].id].src="reveal.png";
@@ -313,7 +303,7 @@ function moveTop()
 		setTimeout("moveTop()",delay(lives));	//keep going
 		return;
 	}
-	//context.close(); //adding to see if allows repeat sound production... no dice
+	
 	//alert("no lives");
 }
 
@@ -324,14 +314,7 @@ function playHit() {
     var successNoise = context.createOscillator();
     successNoise.frequency = "100";
     successNoise.type = "sine";
-    //successNoise.frequency.exponentialRampToValueAtTime(
-    //    300,
-    //    context.currentTime + 0.05
-    //);
-    //successNoise.frequency.exponentialRampToValueAtTime(
-    //    400,
-    //    context.currentTime + 0.15
-    //);
+    
 
     var successGain = context.createGain();
     var now = context.currentTime
@@ -341,11 +324,7 @@ function playHit() {
        context.currentTime + 0.3
     );
 
-    //successFilter = context.createBiquadFilter("bandpass");
-    //successFilter.Q = 0.01;
-    //console.log("context",context);
-    //console.log("context.destination",context.destination);
-    //console.log("sN.c",successNoise.connect(successGain));
+    
     successNoise.connect(successGain);
     successGain.connect(context.destination);
     successNoise.start();
@@ -392,8 +371,7 @@ function putToken(tx,ty)
 	pToken.style.top=nty;
 	tokenX=tx;
 	tokenY=ty;
-	//document.images[grid[tokenX][tokenY].id].src="reveal.png";
-	//addMask(tx,ty,1); //add red mask
+	
 }
 
 
