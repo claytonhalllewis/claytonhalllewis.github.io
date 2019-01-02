@@ -186,7 +186,7 @@ function mouseDown(e)
 	if (!e) var e=window.event;
 	var x=e.clientX;
 	var y=e.clientY;
-	context.resume();
+	//context.resume(); //is this needed here?
 	return processDown(x,y);
 }
 function processDown(x,y)
@@ -232,8 +232,7 @@ function mouseUp(e)
 	console.log('mouse up');
 	var x=e.clientX;
 	var y=e.clientY;
-	//context = new AudioContext(); //has to be in response to user action
-	//context.resume(); //has to be in response to user action is this needed here?
+	
 	return processUp(x,y);
 }
 function processUp(x,y)
