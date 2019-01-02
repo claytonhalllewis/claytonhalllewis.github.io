@@ -211,12 +211,15 @@ function touchEnd(e)
 	//e.preventDefault();
 	x= e.changedTouches[0].clientX;
   	y = e.changedTouches[0].clientY;
+  	if (e.isTrusted)
+  		console.log("trusted");
+  	else console.log("not trusted");
+  	console.log("touchEnd",x,y);
   	context = new AudioContext(); //has to be in response to user action
   	context.resume();
   	playMove(); //try to get it going
-  	
   	console.log("context",context);
-  	console.log("touchEnd",x,y);
+  	
   	return processUp(x,y);
 }
 function mouseUp(e)
