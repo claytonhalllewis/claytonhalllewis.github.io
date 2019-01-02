@@ -161,6 +161,7 @@ function setup()
 	//document.addEventListener("touchend",touchEnd,{passive:true});
 	document.body.addEventListener("touchstart",touchStart,{passive:false});
 	context = new AudioC(); 
+	unlockAudio();
 	
 	pToken=document.getElementById("token");
 	putToken(0,4);
@@ -395,15 +396,15 @@ function putToken(tx,ty)
 	//document.images[grid[tokenX][tokenY].id].src="reveal.png";
 	//addMask(tx,ty,1); //add red mask
 }
-/*
-if (usingWebAudio && ctx.state === 'suspended') 
+function unlockAudio()
 {
+
   var resume = function () 
   {
-    ctx.resume();
+    context.resume();
 
     setTimeout(function () {
-      if (ctx.state === 'running') {
+      if (context.state === 'running') {
         document.body.removeEventListener('touchend', resume, false);
       }
     }, 0);
@@ -411,7 +412,7 @@ if (usingWebAudio && ctx.state === 'suspended')
 
   document.body.addEventListener('touchend', resume, false);
 }
-*/
+
 
 //-->
 </script>
