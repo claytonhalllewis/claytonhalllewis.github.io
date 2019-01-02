@@ -153,8 +153,8 @@ function isEven(n)
 }
 function setup()
 {
-	document.onmousedown=mouseDown;
-	document.onmouseup=mouseUp;
+	//document.onmousedown=mouseDown; //experimenting to see if these 2 events interfere
+	//document.onmouseup=mouseUp;
 	//document.ontouchstart=touchStart;
 	//document.ontouchend=touchEnd;
 	document.addEventListener("touchend",touchEnd,{passive:false});
