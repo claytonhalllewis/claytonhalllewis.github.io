@@ -161,7 +161,7 @@ function setup()
 	//document.addEventListener("touchend",touchEnd,{passive:true});
 	document.body.addEventListener("touchstart",touchStart,{passive:false});
 	context = new AudioC(); 
-	//unlockAudio(); //is this necessary?
+	
 	
 	pToken=document.getElementById("token");
 	putToken(0,4);
@@ -186,7 +186,7 @@ function mouseDown(e)
 	if (!e) var e=window.event;
 	var x=e.clientX;
 	var y=e.clientY;
-	//context.resume(); //is this needed here?
+	//context.resume(); //is this needed here? no!
 	return processDown(x,y);
 }
 function processDown(x,y)
@@ -220,7 +220,7 @@ function touchEnd(e)
   	console.log("touchEnd",x,y);
   	//context = new AudioContext(); //has to be in response to user action
   	
-  	playMove(); //try to get it going
+  	//playMove(); //try to get it going
   	context.resume();
   	console.log("context",context);
   	
