@@ -153,8 +153,8 @@ function isEven(n)
 }
 function setup()
 {
-	//document.onmousedown=mouseDown; //experimenting to see if these 2 events interfere
-	//document.onmouseup=mouseUp;
+	document.onmousedown=mouseDown; //experimenting to see if these 2 events interfere
+	document.onmouseup=mouseUp;
 	//document.ontouchstart=touchStart;
 	//document.ontouchend=touchEnd;
 	document.addEventListener("touchend",touchEnd,{passive:false});
@@ -310,7 +310,7 @@ function moveTop()
 		setTimeout("moveTop()",delay(lives));	//keep going
 		return;
 	}
-	context.close(); //adding to see if allows repeat sound production
+	//context.close(); //adding to see if allows repeat sound production... no dice
 	//alert("no lives");
 }
 
