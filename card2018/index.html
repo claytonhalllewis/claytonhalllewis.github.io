@@ -157,9 +157,9 @@ function setup()
 	document.onmouseup=mouseUp;
 	//document.ontouchstart=touchStart;
 	//document.ontouchend=touchEnd;
-	document.addEventListener("touchend",touchEnd,{passive:false});
+	document.body.addEventListener("touchend",touchEnd,{passive:false});
 	//document.addEventListener("touchend",touchEnd,{passive:true});
-	document.addEventListener("touchstart",touchStart,{passive:false});
+	document.body.addEventListener("touchstart",touchStart,{passive:false});
 	context = new AudioC(); 
 	
 	pToken=document.getElementById("token");
@@ -395,6 +395,23 @@ function putToken(tx,ty)
 	//document.images[grid[tokenX][tokenY].id].src="reveal.png";
 	//addMask(tx,ty,1); //add red mask
 }
+/*
+if (usingWebAudio && ctx.state === 'suspended') 
+{
+  var resume = function () 
+  {
+    ctx.resume();
+
+    setTimeout(function () {
+      if (ctx.state === 'running') {
+        document.body.removeEventListener('touchend', resume, false);
+      }
+    }, 0);
+  };
+
+  document.body.addEventListener('touchend', resume, false);
+}
+*/
 
 //-->
 </script>
