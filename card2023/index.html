@@ -1,0 +1,447 @@
+<html>
+<head> <title>2023</title>
+	<style>
+.center 
+{
+  margin: auto;
+  text-align:center;
+  width: 100%;
+}
+
+h1 {
+  font-family: Arial, Helvetica, sans-serif;
+  color:red;
+}
+</style>
+<script type="application/javascript">  
+//this version has stop button for taking screen shots
+  const DELTA=100; //ticks per interval
+	const T0=0;
+	const T1=T0+DELTA;
+	const T2=T1+DELTA;
+	const T3=T2+DELTA;
+	const T4=T3+DELTA;
+	const SPACING=10;
+	const RADIUS=12;
+	const XOFFSET=42;
+	const YOFFSET=10;
+	const NULL=-.1; //negative angles don't draw
+	const ROWS=40;
+	const COLS=40;
+	const del=50;
+	const pause=2500;
+	var ply=0;
+
+var running=true;
+var t=0;
+var nodes=[];
+function start()
+{
+	canvas = document.getElementById("canvas");  
+  ctx = canvas.getContext("2d");  
+  init();
+	setup();
+  draw();
+}
+
+function clear()
+{
+	ctx.fillStyle = "#0000FF";
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+
+
+function draw()
+{
+	clear();
+	//loop over all nodes
+	//draw line at calculated angle
+	//increment t
+	for (var i=0;i<COLS;i++)
+		for(var j=0;j<ROWS;j++)
+			drawLine(t,nodes[i][j]);
+	t=t+1;
+	//if((t==T1)||(t==T2)||(t==T3))
+	//	running=false; //for screen shots
+	if((t==T1)||(t==T2)||(t==T3)||(t==T4))
+		delay=del+pause;
+	else delay=del;
+	if (t>T4) //wraparound
+		t=0;
+	if(!running)
+		return;
+	setTimeout(draw,delay);
+}
+function drawLine(t,node)
+{
+	//node has origin and angle for 3 setups
+	//if angle is null value, don't draw
+	var angle=getAngle(t,node);
+	if (angle<0) return;
+
+ctx.beginPath();
+ctx.moveTo(XOFFSET+node.x, node.y+YOFFSET);
+ctx.lineTo(XOFFSET+node.x+RADIUS*Math.cos(angle),YOFFSET+node.y+RADIUS*Math.sin(angle));
+ctx.strokeStyle = "white";
+ctx.lineWidth=2;
+ctx.stroke();
+}
+
+function getAngle(t,node)
+{
+	if (t>T3) //shade from a3 to a0
+		return node.angle[3]+((t-T3)/(T4-T3))*(node.angle[0]-node.angle[3]);
+	if (t>T2) //shade from a2 to a3
+		return node.angle[2]+((t-T2)/(T3-T2))*(node.angle[3]-node.angle[2]);
+	if (t>T1) //shade from a1 to a2
+		return node.angle[1]+((t-T1)/(T2-T1))*(node.angle[2]-node.angle[1]);
+	//shade from a0 to a1
+	return node.angle[0]+((t-T0)/(T1-T0))*(node.angle[1]-node.angle[0]);
+}
+function setup()
+{
+	//create 3 arrangements
+	//trees
+	//mix
+	//stars
+	//constants for times
+
+	ply0();
+	ply1();
+	ply2();
+	ply3();
+}
+//adding a better function for defining shapes
+//go(x,y,string), where string contains n,e,s,w,ne,se,sw,nw
+//radius a bit more than the side of a square, to approximate diagonal
+function go(x,y,commands)
+{
+	//ply is a global
+	if(commands!="")
+	{
+		console.log("commands ",commands);
+		var comm=getComm(commands);
+		commands=butFirst(commands);
+		var dest=move([x,y],comm);
+		nodes[x][y].angle[ply]=2*Math.PI+Math.atan2(dest[1]-y,dest[0]-x);
+		go(dest[0],dest[1],commands);
+	}
+}
+function getComm(commands)
+{
+	//remove leading space
+	commands=commands.trim();
+	//find first
+	var s=commands.indexOf(" ");
+	if(s==-1)
+		return commands;
+	return commands.slice(0,s);
+}
+function butFirst(commands)
+{
+	var s=commands.indexOf(" ");
+	console.log("s ",s);
+	if(s==-1)
+		return "";
+	return commands.slice(s+1);
+}
+function move(org,comm)
+{
+	var x=org[0];
+	var y=org[1];
+	switch(comm)
+	{
+		case "n":
+			return [x,y-1];
+		case "ne":
+			return [x+1,y-1];
+		case "e":
+			return [x+1,y];
+		case "se":
+			return [x+1,y+1];
+		case "s":
+			return [x,y+1];
+		case "sw":
+			return [x-1,y+1];
+		case "w":
+			return [x-1,y];
+		case "nw":
+			return [x-1,y-1];
+	}
+}
+
+
+function init()
+{
+			for(var i=0;i<COLS;i++)
+			{
+				nodes[i]=[];
+				for(var j=0;j<ROWS;j++)
+				{
+					nodes[i][j]={};
+					nodes[i][j].angle=[NULL,NULL,NULL,NULL];
+					nodes[i][j].x=i*SPACING;
+					nodes[i][j].y=j*SPACING;
+				}
+		}
+}
+/*
+function ply0()
+{
+	//all trees
+	for(var i=7;i<31;i=i+7)
+		for(var j=6;j<37;j=j+6)
+			makeTree(0,i,j);
+}
+*/
+function star(x,y)
+{
+	go(x,y,"ne e nw n sw w se s");
+}
+function tree1(x,y)
+{
+	go(x,y,"ne s w");
+}
+function tree2(x,y)
+{
+	go(x,y,"ne ne s s w w");
+}
+function tree3(x,y)
+{
+	go(x,y,"ne ne ne s s s w w w");
+}
+function tree5(x,y)
+{
+	go(x,y,"ne ne ne ne ne s s s s s w w w w w");
+}
+function hill1(x,y)
+{
+	go(x,y,"n se w");
+}
+function hill3(x,y)
+{
+	go(x,y,"n n n se se se w w w");
+}
+function hill5(x,y)
+{
+	go(x,y,"n n n n n se se se se se w w w w w");
+}
+function windw(x,y)
+{
+	go(x,y,"n e s w");
+}
+function cabin(x,y)
+{
+	go(x,y,"n n n ne ne se se e e e nw nw w w w");
+	go(x+3,y,"n n w s s w w");
+	go(x+4,y-2,"s s e e e n n n");
+	windw(x+5,y-1);
+
+}
+function cabin2(x,y)
+{
+	go(x,y,"n n n ne ne se se e e e nw nw w w w");
+	go(x+4,y-2,"s s e n n e s s e n n n");
+	go(x+1,y,"e e e");
+	windw(x+2,y-1);
+
+}
+function church(x,y)
+{
+	go(x+5,y,"w n n n nw w sw s s s w n n n n n n n n n e s e e e n e s s s s s s s s s");
+	windw(x+2,y-5);
+	go(x+6,y,"e e e e e e e e e n n n n n nw w w w w w w w w w");
+	go(x+6,y-4,"e e e e e e e se s s s");
+	go(x+7,y-1,"n ne se s w w");
+	go(x+10,y-1,"n ne se s w w");
+}
+function house(x,y)
+{
+	go(x,y,"n n n n n ne ne se se s s s s s w w w w");
+	go(x+5,y, "e e n n e s s e e e n n n n n nw nw w w w w w n w s w");
+	go(x+10,y-5,"w w w w w w");
+	windw(x+2,y-4);
+	windw(x+5,y-1);
+	windw(x+9,y-1);
+	windw(x+5,y-3);
+	windw(x+7,y-3);
+	windw(x+9,y-3);
+}
+function house2(x,y)
+{
+	go(x,y,"n n n n n ne ne se se s s s s s w w w w");
+	go(x+5,y, "e e e e n n e s s e n n n n n nw nw w n w s w w w w w");
+	go(x+10,y-5,"w w w w w w");
+	windw(x+1,y-3);
+	windw(x+2,y-1);
+	windw(x+5,y-1);
+	windw(x+7,y-1);
+	windw(x+5,y-3);
+	windw(x+7,y-3);
+	windw(x+9,y-3);
+}
+function ply0() //stars
+{
+	ply=0;
+	stars(1,4);
+	stars(5,17);
+	stars(2,30);
+}
+function stars(x,y)//1,4
+{
+	star(x,y);
+	star(x+1,y+3);
+	star(x+4,y+1);
+	star(x+11,y);
+	star(x+8,y+3);
+	star(x+7,y-1);
+	star(x+11,y+3);
+	star(x+9,y+7);
+	star(x+14,y+5);
+	star(x+19,y);
+}
+function ply1() //stars and trees
+{
+	ply=1;
+	star(1,4);
+	star(2,7);
+	star(5,5);
+	star(12,4);
+	star(9,7);
+	star(8,3);
+	star(12,7);
+	star(10,11);
+	star(15,9);
+	star(20,4);
+  tree3(26,4);
+  tree2(23,5);
+  tree2(15,13);
+  tree5(26,20);
+  hill5(0,20);
+  hill3(3,24);
+  hill1(7,23);
+  tree3(20,25);
+  tree3(24,25);
+  hill3(1,36);
+  hill1(5,36);
+  hill1(7,36);
+  hill1(9,36);
+  tree1(19,36);
+  tree1(21,36);
+  tree1(23,36)
+  tree3(25,36);
+  tree5(26,28);
+  tree5(26,14);
+  tree5(13,26);
+  tree5(20,20);
+  tree3(17,15);
+  hill5(1,28);
+  hill5(7,34);
+  hill3(13,31);
+}
+function ply2() //buildings... this one is finished
+{
+	ply=2;
+	star(1,4);
+	star(2,7);
+	star(5,5);
+	star(12,4);
+	star(9,7);
+	star(8,3);
+	star(12,7);
+	star(10,11);
+	star(15,9);
+	star(20,4);
+  cabin(0,13);
+  church(9,21);
+  house(18,13);
+  house2(1,32);
+  cabin2(18,33);
+  tree3(26,4);
+  tree2(23,5);
+  tree2(15,13);
+  tree5(26,20);
+  hill5(0,20);
+  hill3(3,24);
+  hill1(7,23);
+  tree3(20,25);
+  tree3(24,25);
+  hill3(1,36);
+  hill1(5,36);
+  hill1(7,36);
+  hill1(9,36);
+  tree1(19,36);
+  tree1(21,36);
+  tree1(23,36)
+  tree3(25,36);
+  tree5(26,28);
+}
+function ply3() //trees and stars... copy ply1
+{
+	ply=3;
+	star(1,4);
+	star(2,7);
+	star(5,5);
+	star(12,4);
+	star(9,7);
+	star(8,3);
+	star(12,7);
+	star(10,11);
+	star(15,9);
+	star(20,4);
+  tree3(26,4);
+  tree2(23,5);
+  tree2(15,13);
+  tree5(26,20);
+  hill5(0,20);
+  hill3(3,24);
+  hill1(7,23);
+  tree3(20,25);
+  tree3(24,25);
+  hill3(1,36);
+  hill1(5,36);
+  hill1(7,36);
+  hill1(9,36);
+  tree1(19,36);
+  tree1(21,36);
+  tree1(23,36)
+  tree3(25,36);
+  tree5(26,28);
+  tree5(26,14);
+  tree5(13,26);
+  tree5(20,20);
+  tree3(17,15);
+  hill5(1,28);
+  hill5(7,34);
+  hill3(13,31);
+}
+
+function runtoggle()
+{
+	running=!running;
+	if (running)
+		draw();
+}
+   </script>  
+
+</head>
+ <body onload="start();">
+ 	
+ 	<div id="canvas-container" class="center">
+ 
+<canvas id="canvas" width="375" height="400">  </canvas>
+
+</div>
+<div class="center">
+	<p>
+<h1>Happy New Year 2023 from the Cundiff Lewis family!</h1>
+</p>
+</div>
+
+
+  
+
+
+</body>
+</html>
