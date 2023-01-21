@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Gift List</title>
+  </head>
+  <body>
+    <h1>Gift List</h1>
+    <label>Name:</label>
+    <input type="text" id="name">
+    <label>Gift:</label>
+    <input type="text" id="gift">
+    <button id="add">Add</button>
+    <button id="query">Query</button>
+    <script>
+      var giftList = {};
+      document.getElementById("add").onclick = function(){
+        var name = document.getElementById("name").value;
+        var gift = document.getElementById("gift").value;
+        if (!giftList[name]) {
+          giftList[name] = [];
+        }
+        giftList[name].push(gift);
+        //save the gift list to local storage
+        localStorage.setItem("giftList", JSON.stringify(giftList));
+      }
+      document.getElementById("query").onclick = function(){
+        var name = document.getElementById("name").value;
+        var gifts = giftList[name];
+        if (gifts) {
+          alert(gifts.join(", "));
+        } else {
+          alert("No gifts found for that person.");
+        }
+      }
+      //retrieve the gift list from local storage
+      var storedGiftList = localStorage.getItem("giftList");
+      if (storedGiftList) {
+        giftList = JSON.parse(storedGiftList);
+      }
+    </script>
+  </body>
+</html>
