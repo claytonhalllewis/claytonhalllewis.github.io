@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prognosticator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 60%;
+        }
+
+        textarea, input {
+            width: 80%;
+            margin: 10px 0;
+            padding: 10px;
+            color: green;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        h2 {
+            color: red;
+        }
+
+    
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>&#x2761;&#x2761;&#x2761; Ten Tokens for the New Year &#x2761;&#x2761;&#x2761;</h2>
+        As 2023 drew towards its end I asked an old Large Language model for ten tokens (syllables, more or less) of prognostication (the new models are too wordy for my taste). I've gathered the outputs for many versions of a prompt, filling in the names of friends. If you put in your name, you'll get a selection from this collection... it might even be the actual one for your name!
+        <br><br>
+        For <br>
+        <textarea id="name" placeholder="Enter name here"></textarea>
+        <br>
+        this new year will see...
+        <br>
+        <textarea id="result"></textarea>
+        <br>
+        <button onclick="prognosticate()">Prognosticate</button>
+        <br>
+        <br>
+        <h2>&#x2756;&#x2756;&#x2756; Happy New Year from the Cundiff Lewis family! &#x2756;&#x2756;&#x2756;</h2>
+    </div>
+
+    <script>
+        var predictions=["them continue to work on their own music, as",
+"the release of their first book, 'The Art",
+"them take on the role of a lifetime, as",
+"the return of the sun, and the return of",
+"them continue to work on their own projects, as",
+"a new beginning. It is a time to reflect",
+"them continue to work on their craft and continue to",
+"them finally get the chance to make them mark on",
+"them continue to work on their music and their career",
+"them take on a new role as a member of",
+"them continue to work on their own projects, as",
+"them continue to work on their music and them acting",
+"them continue to work on their music and their career",
+"them continue to work on their own music, as",
+"the launch of a new project, the 'A",
+"them continue to work on their music and their career",
+"them take on the role of a lifetime, as",
+"them continue to work on their own personal development,",
+"them take on the role of Head of Sales for",
+"them continue to work on their own projects, as",
+"them continue to work on their own music, as",
+"the launch of a new website, a new logo",
+"them continue to work on their own projects, as"];
+function stringToHash(string) {
+ 
+    let hash = 0;
+ 
+    if (string.length == 0) return hash;
+ 
+    for (i = 0; i < string.length; i++) {
+        char = string.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+ 
+    return hash;
+}
+
+function chooseResponse(name)
+{
+    return predictions[Math.abs(stringToHash(name))%22];
+}
+        
+function prognosticate()
+{
+    var name=document.getElementById("name").value
+    document.getElementById("result").value=chooseResponse(name);
+}
+    </script>
+</body>
+</html>
