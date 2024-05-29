@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head><title>Cundiff Lewis Card 2012</title>
+<style type="text/css">
+div
+{
+float: right;
+text-align: center;
+width:20%;
+border:2px solid black;
+padding: 10px;
+font-family:Helvetica,sans-serif;
+}
+span
+{
+font-size: 200%;
+}
+.smaller
+{
+font-size: 75%;
+}
+
+
+</style>
+
+</head>
+<script type="application/javascript"> 
+var t=0;
+var img1;
+var img2;
+var img3;
+var img4;
+var w1,w2,w3,w4;
+var h1,h2,h3,h4;
+var wWindow; //width of window in underlying image space
+var hWindow;
+var H=550; //ht of canvas 275
+var W=700; //width of canvas 350
+var DELTA=1; //panning increment
+var running=false;
+var ctx;
+function setup() {  
+    ctx = document.getElementById('canvas').getContext('2d');  
+    img1 = new Image();   
+    img1.src = 'winterb3.png'; 
+    
+    img2 = new Image();   
+    img2.src = 'sprb2.png';
+    
+    img3 = new Image();   
+    img3.src = 'sumb3.png';
+    
+    img4 = new Image();   
+    img4.src = 'fallb3.png';
+    
+    img4.onload=function(){   //don't try to draw before load 
+    w1=img1.width;
+    h1=img1.height;
+    w2=img2.width;
+    h2=img2.height;
+    w3=img3.width;
+    h3=img3.height;
+    w4=img4.width;
+    h4=img4.height;
+    wWindow=Math.min(w1,w2,w3,w4);
+    hWindow=Math.min(h1,h2,h3,h4);
+    
+    moveAndDraw();
+    }
+}  
+function control()
+{
+	running=!running;
+	if (running)
+	{
+		moveAndDraw();
+	}
+}
+function drawPix(imgL,imgR,offset)
+{
+	var wL=imgL.width;
+	var wR=imgR.width;
+	var wLPart=Math.min(wL-offset,wWindow);
+	var wRPart=wWindow-wLPart;
+	ctx.drawImage(imgL,offset,0,wLPart,hWindow,0,0,(W*wLPart)/wWindow,H);
+	if(wRPart>0)
+	{
+		ctx.drawImage(imgR,0,0,wRPart,hWindow,(W*wLPart)/wWindow,0,(W*wRPart)/wWindow,H);
+	}
+}
+
+function moveAndDraw()
+{
+	if (t>=w1+w2+w3+w4)
+	{
+		t=0;
+	}
+	if(t<w1) //first 2 images
+	{
+		drawPix(img1,img2,t);
+	}
+	else if (t<(w1+w2))
+	{
+		drawPix(img2,img3,t-w1);
+	}
+	else if (t<(w1+w2+w3))
+	{
+		drawPix(img3,img4,t-(w1+w2));
+	}
+	else 
+	{
+		drawPix(img4,img1,t-(w1+w2+w3));
+	}
+	t=t+DELTA;
+	if (running)
+	{
+		setTimeout("moveAndDraw()",4);
+	}
+}
+</script>
+<body onload="setup()">
+<canvas id="canvas" width="700" height="550" onclick="control()"> 
+<img src="winterb3.png" alt="This canvas shows an animated view of Boulder in the four seasons, made by blending four views." /> This canvas (not supported in your browser) shows an animated view of Boulder in the four seasons, made by blending four views. Try Chrome, Firefox, or Safari.
+</canvas> 
+<div><span>Happy <br>New <br>Year <br>2012 <br><span class="smaller">from the<br>Cundiff Lewis<br>family!</span> <br>. . . .<br></span>Click on the image to start and stop the chronopanorama.</div>
+</body>
+</html>
