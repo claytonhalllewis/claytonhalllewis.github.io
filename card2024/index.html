@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy New Year!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .palette-container, .canvas-container {
+            display: grid;
+
+            margin: 10px 0;
+        }
+
+        .palette-container {
+            grid-template-columns: repeat(5, 40px);
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .palette-cell {
+            width: 20px;
+            height: 20px;
+            border: 1px solid purple;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+
+        .canvas-cell {
+            width: 10px;
+            height: 10px;
+            
+            cursor: pointer;
+        }
+
+        .canvas-container {
+            grid-template-columns: repeat(24, 1fr);
+            gap: 0;
+        }
+
+        .palette-cell {
+            border: 2px solid purple;
+        }
+
+        .palette-cell.selected {
+            border: 2px solid black;
+        }
+
+        .footer {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .button-container {
+            margin-top: 10px;
+        }
+
+        .run-button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Happy New Year!</h1>
+    
+    
+
+    <!-- Canvas Section -->
+    
+    <div class="canvas-container" id="canvas"></div>
+
+    <div class="button-container">
+        <button class="run-button" id="run-button">Run</button>
+    </div>
+
+    <div class="footer">To modify the display, click a color below, then click in the grid.</div>
+<!-- Palette Section -->
+    
+    <div class="palette-container" id="palette">
+        <div class="palette-cell" style="background-color: red;" data-color="red"></div>
+        <div class="palette-cell" style="background-color: green;" data-color="green"></div>
+        <div class="palette-cell" style="background-color: blue;" data-color="blue"></div>
+        <div class="palette-cell" style="background-color: yellow;" data-color="yellow"></div>
+        <div class="palette-cell" style="background-color: white;" data-color="white"></div>
+    </div>
+    <script>
+        const palette = document.getElementById('palette');
+        const canvas = document.getElementById('canvas');
+        const runButton = document.getElementById('run-button');
+        let selectedColor = 'white'; // Default selected color
+        const guardColor="rgb(1, 0, 0)";
+        const blueGuardColor="rgb(0, 0, 1)";
+        var savedGuardColor;
+        const nullGuard="rgb(0, 255, 255)";
+        let isRunning = false;
+        
+        let chain = [];
+        let interval;
+
+        // Generate 24x24 grid for the canvas
+        function createCanvas() {
+            const cells = [];
+            for (let i = 0; i < 24; i++) {
+                cells.push([]);
+                for (let j = 0; j < 24; j++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('canvas-cell');
+                    canvas.appendChild(cell);
+                    cells[i].push(cell);
+                    
+                    // Add click event to paint cell
+                    cell.addEventListener('click', () => {
+                        cell.style.backgroundColor = selectedColor;
+                    });
+                }
+            }
+            return cells;
+        }
+
+        function defineChain(cells) {
+            const chain = [];
+            let row = 0, col = 0;
+            
+            //traverse down left side
+            for(row=0;row<24;row++)
+                chain.push(cells[row][0]);
+            //traverse right along bottom
+            for (col=1;col<24;col++)
+                chain.push(cells[23][col]);
+            //do eleven blocks of left traverse then right
+            row=22;
+            for (var i=0;i<11;i++)
+            {
+                for(col=23;col>0;col--)
+                    chain.push(cells[row][col]);
+                for (col=1;col<24;col++)
+                    chain.push(cells[row-1][col]);
+                row=row-2;
+            }
+            //traverse left along top
+            for(col=23;col>0;col--)
+                chain.push(cells[0][col]);
+
+
+            return chain;
+        }
+        
+        function shiftColors() {
+            
+            const lastColor = chain[chain.length - 1].style.backgroundColor;
+            for (let i = chain.length - 1; i > 0; i--) {
+                chain[i].style.backgroundColor = chain[i - 1].style.backgroundColor;
+            }
+            chain[0].style.backgroundColor = lastColor;
+            savedGuardColor=cells[8][1].style.backgroundColor;
+            if ((savedGuardColor==guardColor)||
+                (savedGuardColor==blueGuardColor))
+            {
+                //toggleRun();
+                clearInterval(interval);
+                if(savedGuardColor==guardColor)
+                    cells[8][1].style.backgroundColor="white";
+                else cells[8][1].style.backgroundColor="blue";
+                
+                setTimeout(resumeRunning,3000);
+            }
+        }
+        function resumeRunning()
+        {
+            if(isRunning)
+            {
+                cells[8][1].style.backgroundColor=savedGuardColor;
+                interval = setInterval(shiftColors, 20); // Faster interval
+            }
+        }
+        function shiftPanel()
+        {
+            for(var i=0;i<184;i++)
+                shiftColors();
+        }
+        function shiftPanelM2()
+        {
+            for(var i=0;i<182;i++)
+                shiftColors();
+        }
+        function shiftLeftCol()
+        {
+            for(var i=0;i<24;i++)
+                shiftColors();
+        }
+
+        function toggleRun() 
+        {
+            if (isRunning) {
+                clearInterval(interval);
+                //savedGuardColor=nullGuard;
+                runButton.textContent = 'Run';
+            } else {
+                if (savedGuardColor!=nullGuard)
+                    cells[8][1].style.backgroundColor=savedGuardColor;
+                interval = setInterval(shiftColors, 40); // Faster interval
+                runButton.textContent = 'Stop';
+            
+            }
+            isRunning = !isRunning;
+        }
+        function drawTwo(x,y,c)
+        {
+            x=x+2;
+            cells[y][x+1].style.backgroundColor=c;
+            cells[y][x+2].style.backgroundColor=c;
+            cells[y+1][x].style.backgroundColor=c;
+            cells[y+1][x+3].style.backgroundColor=c;
+            cells[y+2][x+2].style.backgroundColor=c;
+            cells[y+3][x+1].style.backgroundColor=c;
+            cells[y+4][x].style.backgroundColor=c;
+            cells[y+4][x+1].style.backgroundColor=c;
+            cells[y+4][x+2].style.backgroundColor=c;
+            cells[y+4][x+3].style.backgroundColor=c;
+        }
+        function drawZero(x,y,c)
+        {
+            x=x+2;
+            cells[y][x+1].style.backgroundColor=c;
+            cells[y][x+2].style.backgroundColor=c;
+            cells[y+1][x].style.backgroundColor=c;
+            cells[y+1][x+3].style.backgroundColor=c;
+            cells[y+2][x].style.backgroundColor=c;
+            cells[y+2][x+3].style.backgroundColor=c;
+            cells[y+3][x].style.backgroundColor=c;
+            cells[y+3][x+3].style.backgroundColor=c;
+            cells[y+4][x+1].style.backgroundColor=c;
+            cells[y+4][x+2].style.backgroundColor=c;
+        }
+        function drawFive(x,y,c)
+        {
+            x=x+2;
+            cells[y][x].style.backgroundColor=c;
+            cells[y][x+1].style.backgroundColor=c;
+            cells[y][x+2].style.backgroundColor=c;
+            //cells[y][x+3].style.backgroundColor=c;
+            cells[y+1][x].style.backgroundColor=c;
+            cells[y+2][x].style.backgroundColor=c;
+            cells[y+2][x+1].style.backgroundColor=c;
+            cells[y+2][x+2].style.backgroundColor=c;
+            cells[y+3][x+2].style.backgroundColor=c;
+            cells[y+4][x].style.backgroundColor=c;
+            cells[y+4][x+1].style.backgroundColor=c;
+            //cells[y+4][x+2].style.backgroundColor=c;
+        }
+        function drawFour(x,y,c)
+        {
+            x=x+2;
+            cells[y][x].style.backgroundColor=c;
+            cells[y][x+2].style.backgroundColor=c;
+            cells[y+1][x].style.backgroundColor=c;
+            cells[y+1][x+2].style.backgroundColor=c;
+            cells[y+2][x].style.backgroundColor=c;
+            cells[y+2][x+2].style.backgroundColor=c;
+            cells[y+3][x].style.backgroundColor=c;
+            cells[y+3][x+1].style.backgroundColor=c;
+            cells[y+3][x+2].style.backgroundColor=c;
+            cells[y+3][x+3].style.backgroundColor=c;
+            cells[y+4][x+2].style.backgroundColor=c;
+        }
+        function drawStar(x,y,c)
+        {
+            cells[y][x+1].style.backgroundColor=c;
+            cells[y+1][x].style.backgroundColor=c;
+            cells[y+1][x+1].style.backgroundColor=c;
+            cells[y+1][x+2].style.backgroundColor=c;
+            cells[y+2][x+1].style.backgroundColor=c;
+        }
+        function drawPanel(c)
+        {
+            for(var x=1;x<24;x++)
+                for(var y=8;y<15;y++)
+                    cells[y][x].style.backgroundColor=c;
+            
+        }
+
+        // Initialize the canvas
+        const cells = createCanvas();
+        chain = defineChain(cells);
+        //cells[2][2].style.backgroundColor="yellow";
+        //console.log("here");
+        // Add event listeners to palette cells for selecting a color
+        palette.addEventListener('click', (event) => {
+            const clickedCell = event.target;
+            if (clickedCell.classList.contains('palette-cell')) {
+                // Deselect previously selected cell
+                const allPaletteCells = document.querySelectorAll('.palette-cell');
+                allPaletteCells.forEach(cell => cell.classList.remove('selected'));
+                
+                // Select clicked cell
+                clickedCell.classList.add('selected');
+                selectedColor = clickedCell.dataset.color; // Update selected color
+            }
+        });
+
+        // Toggle the run/stop functionality
+        runButton.addEventListener('click', toggleRun);
+
+        // Default select the first color in the palette
+        const firstPaletteCell = document.querySelector('.palette-cell');
+        firstPaletteCell.classList.add('selected');
+        selectedColor = firstPaletteCell.dataset.color;
+        
+        //cells[0][1].style.backgroundColor="red";
+         cells[8][1].style.backgroundColor=guardColor;
+         //guardColor=cells[8][1].style.backgroundColor;
+         //console.log(guardColor);
+         drawTwo(1,8,"red");
+         drawZero(6,8,"red");
+         drawTwo(11,8,"red");
+         drawFour(16,8,"red");
+
+         shiftPanel();
+         shiftColors();
+         drawPanel("blue");
+         drawStar(1,8, "yellow");
+         drawStar(3,11, "yellow");
+         drawStar(6,9,"yellow");
+         drawStar(12,10, "yellow");
+         drawStar(17,9,"yellow");
+         drawStar(21,11, "yellow");
+         
+         cells[8][1].style.backgroundColor=blueGuardColor;
+         console.log(blueGuardColor , cells[8][1].style.backgroundColor);
+
+         shiftPanel();
+         shiftColors();
+         drawTwo(1,8,"green");
+         drawZero(6,8,"green");
+         drawTwo(11,8,"green");
+         drawFive(16,8,"green");
+         cells[8][1].style.backgroundColor=guardColor;
+         
+         shiftPanelM2();
+         //shiftLeftCol();
+         //shiftPanel();
+
+        
+    </script>
+</body>
+</html>
