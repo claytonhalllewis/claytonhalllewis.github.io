@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>VC2: templatic generation from predictive regularities</title>
+<style>
+  body { font-family: Georgia, serif; margin: 0; padding: 16px 24px; background: #fbfaf7; color: #222; }
+  h1 { font-size: 22px; margin: 0 0 4px 0; }
+  h2 { font-size: 16px; margin: 18px 0 6px 0; border-bottom: 1px solid #ccc; }
+  .note { color: #555; font-size: 13px; margin-bottom: 12px; }
+  .row { display: flex; gap: 24px; flex-wrap: wrap; }
+  .col { flex: 1 1 420px; min-width: 320px; }
+  textarea { width: 100%; box-sizing: border-box; font-family: Menlo, Consolas, monospace; font-size: 13px; }
+  button { font-size: 13px; margin-right: 6px; margin-top: 6px; }
+  select { font-size: 13px; }
+  .mono { font-family: Menlo, Consolas, monospace; font-size: 13px; white-space: pre-wrap; word-break: break-all; }
+  .box { background: #fff; border: 1px solid #ddd; padding: 8px 10px; border-radius: 4px; }
+  .gen { background: #fff2b0; }
+  .win { background: #d9f2d9; }
+  .neg { color: #a00; }
+  table { border-collapse: collapse; font-size: 13px; width: 100%; }
+  th, td { border: 1px solid #ddd; padding: 3px 6px; text-align: left; vertical-align: top; }
+  th { background: #eee; }
+  td.num { text-align: right; font-family: Menlo, Consolas, monospace; }
+  .small { font-size: 12px; color: #555; }
+  .dict span { display: inline-block; margin: 1px 6px 1px 0; }
+  .pass { color: #070; font-weight: bold; }
+  .fail { color: #a00; font-weight: bold; }
+  details { margin-top: 6px; }
+</style>
+</head>
+<body>
+
+<h1>VC2: templatic generation from predictive regularities</h1>
+<div class="note">
+  The program predicts the next character of a string, one character at a time, using only
+  regularities it finds in the string itself. Nothing is told to it about delimiters, spans, or templates.
+  Type a letter string, or a word string (words separated by spaces), press <b>Start</b>, then <b>Step</b>.
+</div>
+
+<div class="row">
+  <div class="col">
+    <h2>Input</h2>
+    <label>Load an example:
+      <select id="exampleSelect"></select>
+    </label>
+    <div style="margin-top:8px">Letter string (each character is an item):</div>
+    <textarea id="letterInput" rows="3"></textarea>
+    <div style="margin-top:8px">Word string (items separated by spaces; recoded to letters):</div>
+    <textarea id="wordInput" rows="5"></textarea>
+    <div>
+      <button id="startLetters">Start from letter string</button>
+      <button id="startWords">Start from word string</button>
+    </div>
+    <div>
+      <button id="stepBtn" disabled>Step</button>
+      <button id="step5Btn" disabled>Step 5</button>
+      <button id="runExpectedBtn" disabled>Run to expected length</button>
+      <button id="undoBtn" disabled>Undo</button>
+    </div>
+    <div class="small" style="margin-top:6px">Expected continuation (optional, used only by "Run to expected length" and the tests):</div>
+    <textarea id="expectedInput" rows="2"></textarea>
+    <div>
+      <button id="runTestsBtn">Run built-in tests</button>
+    </div>
+    <div id="testResults" class="small"></div>
+  </div>
+
+  <div class="col">
+    <h2>Current string</h2>
+    <div id="currentLetters" class="box mono"></div>
+    <div id="currentWords" class="box mono" style="margin-top:6px; display:none"></div>
+    <div id="dictBox" class="box dict small" style="margin-top:6px; display:none"></div>
+    <h2>Prediction for the next character</h2>
+    <div id="tallyBox"></div>
+  </div>
+</div>
+
+<h2>Regularities applied at this step</h2>
+<div class="note">
+  Each regularity is a concrete pattern found in the string. "Condition" must be a suffix of the string for the
+  regularity to apply; "context" is the earlier material it was derived from. Votes are weight &times; evidence.
+  Two votes for the same character that read the same position of the string are the same evidence: only the larger is added.
+</div>
+<div id="rulesBox"></div>
+
+<h2>Step history</h2>
+<div id="historyBox" class="small"></div>
+
+<script id="vc2-engine">
+// =====================================================================
+//  VC2 ENGINE
+//  Everything in this script block is independent of the browser, so the
+//  same code can be loaded under Node for testing (see run_tests.js).
+//
+//  The engine works on a plain string. Each character is one item.
+//  Word strings are recoded to characters by encodeWords() below.
+// =====================================================================
+
+var VC2 = {};
+
+// Tunable weights and limits.
+VC2.params = {
+  copyWeight: 4,       // multiplier for copy-rule votes (generalized Copredictor)
+  rsWeight: 1,         // multiplier for Repeated Subsequence votes
+  altWeight: 2,        // multiplier for Alternation votes (these are negative)
+  maxAnchor: 3,        // longest anchor for a copy rule
+  maxSource: 1,        // longest source string for a copy rule
+  maxRS: 12,           // longest suffix examined by Repeated Subsequence
+  minAltCount: 3,      // each character of an alternating pair must occur this often
+  minPhaseCount: 3,    // ... and this often to be used as a phase condition
+  minHitsForPhase: 2,  // a copy rule needs this many hits before a phase is sought
+  minHitsForSourcePhase: 2, // a phase-qualified source needs this many hits
+  subDiscount: 0.9     // substitutions count slightly less than plain copies
+};
+
+// ---------------------------------------------------------------------
+//  Small helpers
+// ---------------------------------------------------------------------
+
+// Largest element of the sorted list that is <= limit, or -1.
+function lastAtOrBefore(list, limit) {
+  if (!list) { return -1; }
+  var lo = 0;
+  var hi = list.length - 1;
+  var best = -1;
+  while (lo <= hi) {
+    var mid = (lo + hi) >> 1;
+    if (list[mid] <= limit) {
+      best = list[mid];
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  return best;
+}
+
+// Evidence that a pattern holds, from the number of times it held and
+// failed.  A single observation counts for 0.33; two for 0.5; five for 0.71.
+function evidence(hits, misses) {
+  return hits / (hits + misses + 2);
+}
+
+// Share of an outcome among the outcomes recorded, with one unit of
+// weight reserved for outcomes not yet seen.  Two observations that
+// disagree get 0.33 each; two that agree get 0.67.
+function share(count, total) {
+  return count / (total + 1);
+}
+
+function round2(x) {
+  return Math.round(x * 100) / 100;
+}
+
+// ---------------------------------------------------------------------
+//  Index of the string: where each character and each short n-gram ends
+// ---------------------------------------------------------------------
+
+function makeIndex(s, maxN) {
+  var index = { s: s, n: s.length, ngramEnds: {}, charPositions: {}, phaseTables: {} };
+  var i;
+  var len;
+  for (i = 0; i < s.length; i++) {
+    for (len = 1; len <= maxN && i - len + 1 >= 0; len++) {
+      var g = s.substring(i - len + 1, i + 1);
+      if (!index.ngramEnds[g]) { index.ngramEnds[g] = []; }
+      index.ngramEnds[g].push(i);
+    }
+    var c = s.charAt(i);
+    if (!index.charPositions[c]) { index.charPositions[c] = []; }
+    index.charPositions[c].push(i);
+  }
+  return index;
+}
+
+// ---------------------------------------------------------------------
+//  Alternation: two characters alternate if, in the string, no two
+//  occurrences of one appear without an occurrence of the other between.
+// ---------------------------------------------------------------------
+
+function alternates(pu, pv) {
+  var i = 0;
+  var j = 0;
+  var last = "";
+  while (i < pu.length || j < pv.length) {
+    var label;
+    if (j >= pv.length || (i < pu.length && pu[i] < pv[j])) {
+      label = "u";
+      i++;
+    } else {
+      label = "v";
+      j++;
+    }
+    if (label === last) { return false; }
+    last = label;
+  }
+  return true;
+}
+
+function findAlternations(index, minCount) {
+  var chars = [];
+  var c;
+  for (c in index.charPositions) {
+    if (index.charPositions[c].length >= minCount) { chars.push(c); }
+  }
+  var pairs = [];
+  var i;
+  var j;
+  for (i = 0; i < chars.length; i++) {
+    for (j = i + 1; j < chars.length; j++) {
+      var pu = index.charPositions[chars[i]];
+      var pv = index.charPositions[chars[j]];
+      if (alternates(pu, pv)) {
+        pairs.push({ u: chars[i], v: chars[j], count: Math.min(pu.length, pv.length) });
+      }
+    }
+  }
+  return pairs;
+}
+
+// Which of u and v occurred most recently at or before position i.
+// A table per pair is built on first use.
+function phaseAt(index, u, v, i) {
+  var key = u + v;
+  var table = index.phaseTables[key];
+  if (!table) {
+    table = [];
+    var last = null;
+    var k;
+    for (k = 0; k < index.n; k++) {
+      var c = index.s.charAt(k);
+      if (c === u) { last = u; } else if (c === v) { last = v; }
+      table.push(last);
+    }
+    index.phaseTables[key] = table;
+  }
+  if (i < 0) { return null; }
+  return table[i];
+}
+
+// Most recent occurrence (end position <= limit) of x at which the phase
+// of the alternating pair (u,v) is "want".
+function lastWithPhase(index, xEnds, limit, u, v, want) {
+  if (!xEnds) { return -1; }
+  var k;
+  for (k = xEnds.length - 1; k >= 0; k--) {
+    if (xEnds[k] > limit) { continue; }
+    if (phaseAt(index, u, v, xEnds[k]) === want) { return xEnds[k]; }
+  }
+  return -1;
+}
+
+// ---------------------------------------------------------------------
+//  Copy rules (generalized Copredictor).
+//
+//  A copy rule has an anchor y and a source x, both short strings.
+//  It says: "after y, the next character is the character that followed
+//  the most recent x, and this continues as long as the material since
+//  y matches the material after x."
+//
+//  The rule is replayed over every occurrence of y in the string.  Each
+//  occurrence yields a run (how many characters were copied faithfully)
+//  and a divergence pair: the source character and the target character
+//  at the point where the run stopped.  Divergence pairs are the
+//  generalized Cofollower: they record, for example, that a source "]"
+//  was matched by a target "}" every time.
+// ---------------------------------------------------------------------
+
+//  A source may be qualified by a phase: "the most recent x at which u was
+//  more recent than v".  This is needed when the same character serves in
+//  both the question and the answer of each example.
+function copyRecord(index, y, x, srcPhase) {
+  var s = index.s;
+  var n = index.n;
+  var a = y.length;
+  var yEnds = index.ngramEnds[y] || [];
+  var xEnds = index.ngramEnds[x] || [];
+  var occ = [];
+  var k;
+  for (k = 0; k < yEnds.length; k++) {
+    var p = yEnds[k];
+    var q;
+    if (srcPhase) {
+      q = lastWithPhase(index, xEnds, p - a, srcPhase.u, srcPhase.v, srcPhase.want);
+    } else {
+      q = lastAtOrBefore(xEnds, p - a);
+    }
+    if (q < 0) {
+      // No source available before this occurrence: the rule could not apply, which counts as a miss.
+      occ.push({ p: p, q: -1, run: 0, srcNext: null, tgtNext: null, hit: false });
+      continue;
+    }
+    var l = 0;
+    while (p + 1 + l < n && q + 1 + l < n && s.charAt(p + 1 + l) === s.charAt(q + 1 + l)) {
+      l++;
+    }
+    occ.push({
+      p: p,
+      q: q,
+      run: l,
+      srcNext: (q + 1 + l < n) ? s.charAt(q + 1 + l) : null,
+      tgtNext: (p + 1 + l < n) ? s.charAt(p + 1 + l) : null,
+      hit: l >= 1
+    });
+  }
+  return { y: y, x: x, srcPhase: srcPhase, occ: occ };
+}
+
+// Summarize a list of occurrences into hits, misses, divergence table and copied counts.
+// novelCopied / novelDiv count what happened the first time each source
+// character was met under this rule: they estimate how a character never
+// seen before by the rule will behave.
+// "after" records, for each character a0 that had just been copied, what
+// happened when the following source character was one the rule had not
+// met before: copied, or replaced (by which character).  It is consulted
+// when the current source character is new to the rule.
+function summarizeOccurrences(index, occ) {
+  var s = index.s;
+  var sum = { hits: 0, misses: 0, subs: {}, subsPos: {}, divTotal: {}, copied: {}, totalCopied: 0, totalDiv: 0,
+              novelCopied: 0, novelDiv: 0, after: {}, occ: occ };
+  var seen = {};
+  var k;
+  // First pass: how often each character is the source at a divergence.
+  // A divergence whose source character recurs is explained by that
+  // character's own substitution record, so it is not entered in "after".
+  var divCount = {};
+  for (k = 0; k < occ.length; k++) {
+    if (occ[k].hit && occ[k].srcNext !== null && occ[k].tgtNext !== null) {
+      divCount[occ[k].srcNext] = (divCount[occ[k].srcNext] || 0) + 1;
+    }
+  }
+  for (k = 0; k < occ.length; k++) {
+    var o = occ[k];
+    if (!o.hit) {
+      sum.misses++;
+      continue;
+    }
+    sum.hits++;
+    var l;
+    for (l = 1; l <= o.run; l++) {
+      var c = s.charAt(o.q + l);
+      sum.copied[c] = (sum.copied[c] || 0) + 1;
+      sum.totalCopied++;
+      if (!seen[c]) {
+        sum.novelCopied++;
+        seen[c] = true;
+        var a0 = s.charAt(o.q + l - 1);
+        if (!sum.after[a0]) { sum.after[a0] = { copied: 0, subs: {}, subsPos: {}, total: 0 }; }
+        sum.after[a0].copied++;
+        sum.after[a0].total++;
+      }
+    }
+    if (o.srcNext !== null && o.tgtNext !== null) {
+      if (!sum.subs[o.srcNext]) { sum.subs[o.srcNext] = {}; sum.subsPos[o.srcNext] = {}; }
+      sum.subs[o.srcNext][o.tgtNext] = (sum.subs[o.srcNext][o.tgtNext] || 0) + 1;
+      sum.subsPos[o.srcNext][o.tgtNext] = o.p + o.run + 1;
+      sum.divTotal[o.srcNext] = (sum.divTotal[o.srcNext] || 0) + 1;
+      sum.totalDiv++;
+      if (!seen[o.srcNext]) {
+        sum.novelDiv++;
+        seen[o.srcNext] = true;
+      }
+      if (divCount[o.srcNext] === 1) {
+        var a1 = s.charAt(o.q + o.run);
+        if (!sum.after[a1]) { sum.after[a1] = { copied: 0, subs: {}, subsPos: {}, total: 0 }; }
+        sum.after[a1].subs[o.tgtNext] = (sum.after[a1].subs[o.tgtNext] || 0) + 1;
+        sum.after[a1].subsPos[o.tgtNext] = o.p + o.run + 1;
+        sum.after[a1].total++;
+      }
+    }
+  }
+  return sum;
+}
+
+// Evaluate a copy rule, leaving out the occurrence at excludeP (the one
+// being applied now).  If the rule has both hits and misses, look for an
+// alternating pair whose phase separates them; if one is found the rule
+// is conditioned on that phase.
+function evaluateCopyRule(index, rec, excludeP, phasePairs, params) {
+  var all = [];
+  var k;
+  for (k = 0; k < rec.occ.length; k++) {
+    if (rec.occ[k].p !== excludeP) { all.push(rec.occ[k]); }
+  }
+  var sum = summarizeOccurrences(index, all);
+  var result = { summary: sum, phase: null };
+  if (sum.hits < params.minHitsForPhase || sum.misses < 1) { return result; }
+  var pp;
+  for (pp = 0; pp < phasePairs.length; pp++) {
+    var u = phasePairs[pp].u;
+    var v = phasePairs[pp].v;
+    var hitPhase = null;
+    var ok = true;
+    var hitOcc = [];
+    for (k = 0; k < all.length && ok; k++) {
+      var ph = phaseAt(index, u, v, all[k].p);
+      if (all[k].hit) {
+        if (ph === null) { ok = false; }
+        else if (hitPhase === null) { hitPhase = ph; }
+        else if (hitPhase !== ph) { ok = false; }
+        hitOcc.push(all[k]);
+      }
+    }
+    if (!ok) { continue; }
+    for (k = 0; k < all.length && ok; k++) {
+      if (!all[k].hit) {
+        // An occurrence with no source available says nothing about the phase.
+        if (all[k].q < 0) { continue; }
+        var mph = phaseAt(index, u, v, all[k].p);
+        if (mph === null || mph === hitPhase) { ok = false; }
+      }
+    }
+    if (!ok) { continue; }
+    result.summary = summarizeOccurrences(index, hitOcc);
+    result.phase = { u: u, v: v, hitPhase: hitPhase };
+    return result;
+  }
+  return result;
+}
+
+// ---------------------------------------------------------------------
+//  Voting
+// ---------------------------------------------------------------------
+
+// Each positive vote names a "witness": the position in the string that the
+// prediction was read from.  Two rules that read the same position for the
+// same character are reporting the same evidence, so only the larger of
+// their votes counts.  Negative votes are simply summed.
+function tallyVotes(rules) {
+  var byKey = {};
+  var totals = {};
+  var k;
+  for (k = 0; k < rules.length; k++) {
+    var r = rules[k];
+    r.counted = true;
+    if (r.vote > 0 && r.witness !== undefined && r.witness !== null) {
+      var key = r.prediction + "|" + r.witness;
+      if (byKey[key]) {
+        if (byKey[key].vote >= r.vote) { r.counted = false; continue; }
+        byKey[key].counted = false;
+      }
+      byKey[key] = r;
+    }
+  }
+  for (k = 0; k < rules.length; k++) {
+    if (rules[k].counted) { totals[rules[k].prediction] = (totals[rules[k].prediction] || 0) + rules[k].vote; }
+  }
+  return totals;
+}
+
+function describeString(str) {
+  if (str.length <= 12) { return str; }
+  return str.substring(0, 5) + "…" + str.substring(str.length - 5);
+}
+
+// Repeated Subsequence: the longest suffix that has occurred before votes
+// for each character that followed it, in proportion to how often.
+function repeatedSubsequenceVotes(index, votes, rules, params) {
+  var s = index.s;
+  var n = index.n;
+  var best = null;
+  var k;
+  for (k = 1; k <= params.maxRS && k < n; k++) {
+    var S = s.substring(n - k);
+    var followers = {};
+    var followerPos = {};
+    var total = 0;
+    var pos = s.indexOf(S, 0);
+    while (pos >= 0 && pos + k < n) {
+      var c = s.charAt(pos + k);
+      followers[c] = (followers[c] || 0) + 1;
+      followerPos[c] = pos + k;
+      total++;
+      pos = s.indexOf(S, pos + 1);
+    }
+    if (total === 0) { break; }
+    best = { k: k, S: S, followers: followers, followerPos: followerPos, total: total };
+  }
+  if (best === null) { return; }
+  var f;
+  for (f in best.followers) {
+    var vote = params.rsWeight * evidence(best.followers[f], best.total - best.followers[f]);
+    rules.push({
+      family: "Repeated Subsequence",
+      condition: best.S,
+      context: best.S + f,
+      prediction: f,
+      evidence: best.followers[f] + " of " + best.total + " times, suffix length " + best.k,
+      vote: vote,
+      witness: best.followerPos[f]
+    });
+  }
+}
+
+function copyRuleVotes(index, votes, rules, params, phasePairs) {
+  var s = index.s;
+  var n = index.n;
+  var memo = {};
+  var chosen = {};
+  var occ = [];
+  var i;
+  for (i = 0; i < n; i++) { occ.push(i); }   // starts of the empty string S
+  var p;
+  for (p = n - 1; p >= 0; p--) {
+    var m = n - 1 - p;                          // S = s.substring(p + 1), length m
+    if (p < n - 1) {
+      var c = s.charAt(p + 1);
+      var newOcc = [];
+      for (i = 0; i < occ.length; i++) {
+        if (occ[i] - 1 >= 0 && s.charAt(occ[i] - 1) === c) { newOcc.push(occ[i] - 1); }
+      }
+      occ = newOcc;
+    }
+    if (occ.length === 0) { break; }
+    var a;
+    for (a = 1; a <= params.maxAnchor && p - a + 1 >= 0; a++) {
+      var y = s.substring(p - a + 1, p + 1);
+      if (!index.ngramEnds[y] || index.ngramEnds[y].length < 2) { continue; }
+      var oi;
+      for (oi = 0; oi < occ.length; oi++) {
+        var q = occ[oi] - 1;
+        if (q < 0 || q > p - a) { continue; }
+        var b;
+        for (b = 1; b <= params.maxSource && q - b + 1 >= 0; b++) {
+          var x = s.substring(q - b + 1, q + 1);
+          var xEnds = index.ngramEnds[x];
+          // Ways of naming this source: plainly ("the most recent x"), or
+          // qualified by the phase of an alternating pair.
+          var namings = [];
+          if (lastAtOrBefore(xEnds, p - a) === q) {
+            namings.push(null);
+          } else {
+            var pp;
+            for (pp = 0; pp < phasePairs.length; pp++) {
+              var want = phaseAt(index, phasePairs[pp].u, phasePairs[pp].v, q);
+              if (want === null) { continue; }
+              if (lastWithPhase(index, xEnds, p - a, phasePairs[pp].u, phasePairs[pp].v, want) === q) {
+                namings.push({ u: phasePairs[pp].u, v: phasePairs[pp].v, want: want });
+              }
+            }
+          }
+          var ni;
+          for (ni = 0; ni < namings.length; ni++) {
+            var srcPhase = namings[ni];
+            var key = y + "|" + x + "|" + (srcPhase ? srcPhase.u + srcPhase.v + srcPhase.want : "");
+            if (!memo[key]) { memo[key] = copyRecord(index, y, x, srcPhase); }
+            var ev = evaluateCopyRule(index, memo[key], p, phasePairs, params);
+            if (ev.summary.hits < 1) { continue; }
+            if (srcPhase && ev.summary.hits < params.minHitsForSourcePhase) { continue; }
+            if (ev.phase && phaseAt(index, ev.phase.u, ev.phase.v, p) !== ev.phase.hitPhase) { continue; }
+            var prob = evidence(ev.summary.hits, ev.summary.misses);
+            var entry = {
+              y: y, x: x, srcPhase: srcPhase, p: p, q: q, S: s.substring(p + 1), m: m,
+              prob: prob, summary: ev.summary, phase: ev.phase,
+              srcNext: s.charAt(q + m + 1),
+              lastCopied: s.charAt(q + m)
+            };
+            // Different sources for the same anchor are alternative hypotheses,
+            // not independent evidence: keep the best-supported one per anchor.
+            if (!chosen[p] || chosen[p].prob < prob) { chosen[p] = entry; }
+          }
+        }
+      }
+    }
+  }
+  // Rules that point at the same source position describe the same
+  // alignment; keep only the best-supported description of it.
+  var byTarget = {};
+  var key2;
+  for (key2 in chosen) {
+    var ent = chosen[key2];
+    var target = ent.q + ent.m + 1;
+    if (!byTarget[target] || byTarget[target].prob < ent.prob) { byTarget[target] = ent; }
+  }
+  for (key2 in byTarget) {
+    emitCopyVotes(byTarget[key2], votes, rules, params);
+  }
+}
+
+// The character just copied (or the last character of the source anchor
+// when nothing has been copied yet).
+function index_lastCopied(e) {
+  return e.lastCopied;
+}
+
+function emitCopyVotes(e, votes, rules, params) {
+  var sum = e.summary;
+  var a = e.srcNext;
+  var base = params.copyWeight * e.prob;
+  var evidenceText = sum.hits + " hits, " + sum.misses + " misses";
+  if (e.srcPhase) {
+    evidenceText += "; source is the last " + e.x + " while " + e.srcPhase.want + " was more recent than " +
+      (e.srcPhase.want === e.srcPhase.u ? e.srcPhase.v : e.srcPhase.u);
+  }
+  if (e.phase) {
+    evidenceText += "; only when " + e.phase.hitPhase + " is more recent than " +
+      (e.phase.hitPhase === e.phase.u ? e.phase.v : e.phase.u);
+  }
+  var divA = sum.divTotal[a] || 0;
+  var copiedA = sum.copied[a] || 0;
+  var condition = e.y + e.S;
+  var context = e.x + e.S + a;
+  if (divA + copiedA > 0) {
+    var b;
+    for (b in sum.subs[a]) {
+      var vote = base * params.subDiscount * share(sum.subs[a][b], divA + copiedA);
+      rules.push({
+        family: "Copy with substitution",
+        condition: condition,
+        context: context,
+        prediction: b,
+        evidence: evidenceText + "; source " + a + " became " + b + " " + sum.subs[a][b] +
+          " of " + (divA + copiedA) + " times",
+        vote: vote,
+        witness: sum.subsPos[a][b],
+        detail: e
+      });
+    }
+    if (copiedA > 0) {
+      // The reserved unit of probability goes to the rule's usual behavior
+      // for a character it has little record of: its fidelity for new ones.
+      var fid = evidence(sum.novelCopied, sum.novelDiv);
+      var vote2 = base * (copiedA + fid) / (divA + copiedA + 1);
+      rules.push({
+        family: "Copy",
+        condition: condition,
+        context: context,
+        prediction: a,
+        evidence: evidenceText + "; source " + a + " copied " + copiedA + " of " + (divA + copiedA) + " times",
+        vote: vote2,
+        witness: e.q + e.m + 1,
+        detail: e
+      });
+    }
+  } else if (sum.after[index_lastCopied(e)]) {
+    var aft = sum.after[index_lastCopied(e)];
+    var b2;
+    for (b2 in aft.subs) {
+      var vote4 = base * params.subDiscount * share(aft.subs[b2], aft.total);
+      rules.push({
+        family: "Copy with substitution",
+        condition: condition,
+        context: context,
+        prediction: b2,
+        evidence: evidenceText + "; after copying " + index_lastCopied(e) + ", a new source character became " +
+          b2 + " " + aft.subs[b2] + " of " + aft.total + " times",
+        vote: vote4,
+        witness: aft.subsPos[b2],
+        detail: e
+      });
+    }
+    var fid2 = evidence(sum.novelCopied, sum.novelDiv);
+    if (aft.copied + fid2 > 0) {
+      var vote5 = base * (aft.copied + fid2) / (aft.total + 1);
+      rules.push({
+        family: "Copy",
+        condition: condition,
+        context: context,
+        prediction: a,
+        evidence: evidenceText + "; after copying " + index_lastCopied(e) + ", a new source character was copied " +
+          aft.copied + " of " + aft.total + " times",
+        vote: vote5,
+        witness: e.q + e.m + 1,
+        detail: e
+      });
+    }
+  } else {
+    var fidelity = evidence(sum.novelCopied, sum.novelDiv);
+    var vote3 = base * fidelity;
+    rules.push({
+      family: "Copy",
+      condition: condition,
+      context: context,
+      prediction: a,
+      evidence: evidenceText + "; new source characters were copied " + sum.novelCopied +
+        " times and replaced " + sum.novelDiv + " times",
+      vote: vote3,
+      witness: e.q + e.m + 1,
+      detail: e
+    });
+  }
+}
+
+// Every pair that alternates with c and has c as its more recent member
+// says the same thing ("c is not next"), so only the best-evidenced pair
+// votes, rather than the sum of all of them.
+function alternationVotes(index, votes, rules, params, altPairs) {
+  var n = index.n;
+  var best = {};
+  var k;
+  for (k = 0; k < altPairs.length; k++) {
+    var pr = altPairs[k];
+    var recent = phaseAt(index, pr.u, pr.v, n - 1);
+    if (recent === null) { continue; }
+    if (!best[recent] || best[recent].count < pr.count) { best[recent] = pr; }
+  }
+  var c;
+  for (c in best) {
+    var pr2 = best[c];
+    var vote = -params.altWeight * (pr2.count - 1) / (pr2.count + 1);
+    rules.push({
+      family: "Alternation",
+      condition: "(" + pr2.u + "," + pr2.v + ") alternate; " + c + " more recent",
+      context: "",
+      prediction: c,
+      evidence: pr2.count + " occurrences each",
+      vote: vote
+    });
+  }
+}
+
+// ---------------------------------------------------------------------
+//  The prediction step
+// ---------------------------------------------------------------------
+
+VC2.predict = function (s, paramsOverride) {
+  var params = paramsOverride || VC2.params;
+  var index = makeIndex(s, Math.max(params.maxAnchor, params.maxSource));
+  var altPairs = findAlternations(index, params.minAltCount);
+  var phasePairs = [];
+  var k;
+  for (k = 0; k < altPairs.length; k++) {
+    if (altPairs[k].count >= params.minPhaseCount) { phasePairs.push(altPairs[k]); }
+  }
+  var votes;
+  var rules = [];
+  if (s.length > 0) {
+    repeatedSubsequenceVotes(index, votes, rules, params);
+    copyRuleVotes(index, votes, rules, params, phasePairs);
+    alternationVotes(index, votes, rules, params, altPairs);
+  }
+  var votes = tallyVotes(rules);
+  var tally = [];
+  var c;
+  for (c in votes) { tally.push({ c: c, total: votes[c] }); }
+  tally.sort(function (p, q) { return q.total - p.total; });
+  var winner = null;
+  if (tally.length > 0 && tally[0].total > 0) { winner = tally[0].c; }
+  rules.sort(function (p, q) { return Math.abs(q.vote) - Math.abs(p.vote); });
+  return { input: s, prediction: winner, tally: tally, rules: rules };
+};
+
+VC2.generate = function (s, count, paramsOverride) {
+  var out = "";
+  var k;
+  for (k = 0; k < count; k++) {
+    var r = VC2.predict(s + out, paramsOverride);
+    if (r.prediction === null) { break; }
+    out += r.prediction;
+  }
+  return out;
+};
+
+// ---------------------------------------------------------------------
+//  Word encoding: each distinct word becomes one character.
+// ---------------------------------------------------------------------
+
+VC2.charPool = (function () {
+  var pool = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  var ranges = [[0x00C0, 0x024F], [0x0391, 0x03A9], [0x03B1, 0x03C9], [0x0410, 0x044F],
+                [0x0531, 0x0556], [0x0561, 0x0586], [0x10D0, 0x10FA], [0x1E00, 0x1EFF],
+                [0x3041, 0x3096], [0x30A1, 0x30FA], [0x4E00, 0x51FF]];
+  var r;
+  for (r = 0; r < ranges.length; r++) {
+    var cp;
+    for (cp = ranges[r][0]; cp <= ranges[r][1]; cp++) {
+      if (cp === 0x00D7 || cp === 0x00F7) { continue; }
+      pool += String.fromCharCode(cp);
+    }
+  }
+  return pool;
+})();
+
+// Split a word string into items.  Brackets, parentheses, braces and commas
+// attached to a word are separated from it (the test material has "eaten(" and "q)").
+VC2.tokenizeWords = function (text) {
+  var raw = text.split(/\s+/);
+  var tokens = [];
+  var brackets = "()[]{},";
+  var k;
+  for (k = 0; k < raw.length; k++) {
+    var t = raw[k];
+    if (t === "") { continue; }
+    var trailing = [];
+    while (t.length > 1 && brackets.indexOf(t.charAt(0)) >= 0) {
+      tokens.push(t.charAt(0));
+      t = t.substring(1);
+    }
+    while (t.length > 1 && brackets.indexOf(t.charAt(t.length - 1)) >= 0) {
+      trailing.unshift(t.charAt(t.length - 1));
+      t = t.substring(0, t.length - 1);
+    }
+    tokens.push(t);
+    var j;
+    for (j = 0; j < trailing.length; j++) { tokens.push(trailing[j]); }
+  }
+  return tokens;
+};
+
+// Build a coder: {encode(tokens) -> string, decode(string) -> tokens, dict}
+VC2.makeCoder = function () {
+  var coder = { dict: [], map: {} };
+  coder.encodeToken = function (t) {
+    if (!coder.map.hasOwnProperty(t)) {
+      if (coder.dict.length >= VC2.charPool.length) { throw new Error("too many distinct words"); }
+      coder.map[t] = VC2.charPool.charAt(coder.dict.length);
+      coder.dict.push(t);
+    }
+    return coder.map[t];
+  };
+  coder.encode = function (tokens) {
+    var out = "";
+    var k;
+    for (k = 0; k < tokens.length; k++) { out += coder.encodeToken(tokens[k]); }
+    return out;
+  };
+  coder.decodeChar = function (c) {
+    var i = VC2.charPool.indexOf(c);
+    if (i < 0 || i >= coder.dict.length) { return "?"; }
+    return coder.dict[i];
+  };
+  coder.decode = function (str) {
+    var out = [];
+    var k;
+    for (k = 0; k < str.length; k++) { out.push(coder.decodeChar(str.charAt(k))); }
+    return out;
+  };
+  return coder;
+};
+
+// ---------------------------------------------------------------------
+//  Built-in examples (from the instructions; the Log example is normalized
+//  so that the prompt and the expected answer use the same "^" character).
+// ---------------------------------------------------------------------
+
+VC2.examples = [
+  { name: "Variable length copy (letters)", mode: "letters",
+    input: "[s]{s}[x]{x}[ab]{ab}[cde]{cde}[pqrs]{",
+    expected: "pqrs}" },
+  { name: "Variable length copy, other delimiters (letters)", mode: "letters",
+    input: "ysz{s}yxz{x}yabz{ab}ycdez{cde}ypqrsz{",
+    expected: "pqrs}" },
+  { name: "Swap (words)", mode: "words",
+    input: "Q a b c V d e A d e V a b c Q f V g A g V f Q h i j k V l A l V h i j k Q m V n o p A n o p V m Q q r V s t A",
+    expected: "s t V q r" },
+  { name: "Passive (words)", mode: "words",
+    input: "Q the old sock was found by the dog A found ( the dog , the old sock ) Q a fast airplane was overtaken by the slow steamer A overtaken ( the slow steamer , a fast airplane ) Q the tasty pancake with syrup was eaten by a skunk A eaten( a skunk , the tasty pancake with syrup ) Q the program was translated by a compiler A translated ( a compiler , the program ) Q my big dog was chased by a small black cat A",
+    expected: "chased ( a small black cat , my big dog )" },
+  { name: "Implication (words)", mode: "words",
+    input: "Q ( p xor q ) => w A w or not ( p xor q ) Q ( f and g ) => h A h or not ( f and g ) Q b => c A c or not b Q x => y A y or not x Q ( u and v ) => z A",
+    expected: "z or not ( u and v )" },
+  { name: "Log (words)", mode: "words",
+    input: "Q log { p * ( 2 - q) } A log ( p ) + log [ ( 2 - q ) ] Q log {  ( c - d ) * e } A log ( ( c - d ) ) + log [ e ] Q log { k * k } A log ( k ) + log [ k ]  Q log { x * y  } A  log ( x ) + log [ y  ] Q log { 3 a * b ^ 2 } A",
+    expected: "log ( 3 a ) + log [ b ^ 2 ]" },
+  { name: "Hugging Face 5-shot sample 1 (words)", mode: "words",
+    input: "Q * $ ry pl & jt , ! me ci ^ != ru A ry pl % | ru ~ _ . Q * $ bz qt zn ay & iu , ! pk ^ != fr dy bw sb A bz qt zn ay % | fr dy bw sb ~ _ . Q * $ gp lc dq uj & bq zs kn rz , ! xw ga kw qp ^ != jj A gp lc dq uj % | jj ~ _ . Q * $ jh fk ev ck & te kq jw tu , ! ma so ^ != fj nc xl ks A jh fk ev ck % | fj nc xl ks ~ _ . Q * $ bs hl & tj dj , ! tc kt ws ug ^ != id cs A bs hl % | id cs ~ _ . Q * $ ti & sp um , ! uq pr ^ != lb go ha wi A",
+    expected: "ti % | lb go ha wi ~ _ ." },
+  { name: "Hugging Face 5-shot sample 2 (words)", mode: "words",
+    input: "Q ! xt ln & tu [ ej < oy rf ya vn A * ej ` } tu . Q ! ht dv & qo zw [ hs ds lg gd < gl bt A * hs ds lg gd ` } qo zw . Q ! cj lj & pb zh tk td [ tq fx < hg A * tq fx ` } pb zh tk td . Q ! dq ce uy if & ee uz [ lq wf < cn A * lq wf ` } ee uz . Q ! dn nw iv qt & ah kv fv yy [ vh < yp dj A * vh ` } ah kv fv yy . Q ! ld & zb gs wo xz [ vd ro < xw A",
+    expected: "* vd ro ` } zb gs wo xz ." }
+];
+
+// Run one example: returns {ok, produced, expected}
+VC2.runExample = function (ex, paramsOverride) {
+  var produced;
+  var expected;
+  if (ex.mode === "letters") {
+    produced = VC2.generate(ex.input, ex.expected.length, paramsOverride);
+    expected = ex.expected;
+  } else {
+    var coder = VC2.makeCoder();
+    var inTokens = VC2.tokenizeWords(ex.input);
+    var exTokens = VC2.tokenizeWords(ex.expected);
+    var encoded = coder.encode(inTokens);
+    var expEncoded = coder.encode(exTokens);
+    var out = VC2.generate(encoded, expEncoded.length, paramsOverride);
+    produced = coder.decode(out).join(" ");
+    expected = exTokens.join(" ");
+  }
+  return { ok: produced === expected, produced: produced, expected: expected };
+};
+
+if (typeof module !== "undefined" && module.exports) { module.exports = VC2; }
+</script>
+
+<script id="vc2-ui">
+// =====================================================================
+//  DASHBOARD
+// =====================================================================
+
+var UI = {
+  mode: null,          // "letters" or "words"
+  coder: null,
+  letters: "",         // current string
+  startLength: 0,      // length of the string when Start was pressed
+  history: [],         // one entry per step: {letters, result}
+  result: null         // prediction for the current string
+};
+
+function el(id) { return document.getElementById(id); }
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function showChar(c) {
+  if (UI.mode === "words") {
+    return escapeHtml(c) + " <span class='small'>(" + escapeHtml(UI.coder.decodeChar(c)) + ")</span>";
+  }
+  return escapeHtml(c);
+}
+
+function fillExamples() {
+  var sel = el("exampleSelect");
+  var k;
+  var opt = document.createElement("option");
+  opt.value = "";
+  opt.textContent = "(choose)";
+  sel.appendChild(opt);
+  for (k = 0; k < VC2.examples.length; k++) {
+    opt = document.createElement("option");
+    opt.value = String(k);
+    opt.textContent = VC2.examples[k].name;
+    sel.appendChild(opt);
+  }
+  sel.onchange = function () {
+    if (sel.value === "") { return; }
+    var ex = VC2.examples[parseInt(sel.value, 10)];
+    el("expectedInput").value = ex.expected;
+    if (ex.mode === "letters") {
+      el("letterInput").value = ex.input;
+      el("wordInput").value = "";
+      startLetters();
+    } else {
+      el("wordInput").value = ex.input;
+      el("letterInput").value = "";
+      startWords();
+    }
+  };
+}
+
+function startLetters() {
+  UI.mode = "letters";
+  UI.coder = null;
+  UI.letters = el("letterInput").value.replace(/\r?\n/g, "");
+  begin();
+}
+
+function startWords() {
+  UI.mode = "words";
+  UI.coder = VC2.makeCoder();
+  var tokens = VC2.tokenizeWords(el("wordInput").value);
+  UI.letters = UI.coder.encode(tokens);
+  begin();
+}
+
+function begin() {
+  UI.startLength = UI.letters.length;
+  UI.history = [];
+  UI.result = VC2.predict(UI.letters);
+  el("stepBtn").disabled = false;
+  el("step5Btn").disabled = false;
+  el("runExpectedBtn").disabled = false;
+  el("undoBtn").disabled = true;
+  render();
+}
+
+function doStep() {
+  if (!UI.result || UI.result.prediction === null) { return false; }
+  UI.history.push({ letters: UI.letters, result: UI.result });
+  UI.letters += UI.result.prediction;
+  UI.result = VC2.predict(UI.letters);
+  el("undoBtn").disabled = false;
+  return true;
+}
+
+function undoStep() {
+  if (UI.history.length === 0) { return; }
+  var h = UI.history.pop();
+  UI.letters = h.letters;
+  UI.result = h.result;
+  el("undoBtn").disabled = UI.history.length === 0;
+  render();
+}
+
+function expectedLength() {
+  var text = el("expectedInput").value;
+  if (UI.mode === "letters") { return text.replace(/\r?\n/g, "").length; }
+  var tokens = VC2.tokenizeWords(text);
+  return tokens.length;
+}
+
+function renderCurrent() {
+  var gen = UI.letters.substring(UI.startLength);
+  var given = UI.letters.substring(0, UI.startLength);
+  var html = escapeHtml(given) + "<span class='gen'>" + escapeHtml(gen) + "</span>";
+  el("currentLetters").innerHTML = html;
+  if (UI.mode === "words") {
+    var givenWords = UI.coder.decode(given).join(" ");
+    var genWords = UI.coder.decode(gen).join(" ");
+    el("currentWords").style.display = "block";
+    el("currentWords").innerHTML = escapeHtml(givenWords) + " <span class='gen'>" + escapeHtml(genWords) + "</span>";
+    var d = "<b>Dictionary:</b> ";
+    var k;
+    for (k = 0; k < UI.coder.dict.length; k++) {
+      d += "<span>" + escapeHtml(VC2.charPool.charAt(k)) + "=" + escapeHtml(UI.coder.dict[k]) + "</span>";
+    }
+    el("dictBox").style.display = "block";
+    el("dictBox").innerHTML = d;
+  } else {
+    el("currentWords").style.display = "none";
+    el("dictBox").style.display = "none";
+  }
+}
+
+function renderTally() {
+  var r = UI.result;
+  if (!r) { return; }
+  var html = "";
+  if (r.prediction === null) {
+    html += "<div class='box'>No character received a positive vote. Nothing predicted.</div>";
+  } else {
+    html += "<div class='box'>Predicted next character: <b>" + showChar(r.prediction) + "</b></div>";
+  }
+  html += "<table style='margin-top:6px'><tr><th>Character</th><th>Total vote</th><th>For</th><th>Against</th></tr>";
+  var k;
+  for (k = 0; k < r.tally.length; k++) {
+    var t = r.tally[k];
+    var forV = 0;
+    var againstV = 0;
+    var j;
+    for (j = 0; j < r.rules.length; j++) {
+      if (r.rules[j].prediction === t.c && r.rules[j].counted) {
+        if (r.rules[j].vote >= 0) { forV += r.rules[j].vote; } else { againstV += r.rules[j].vote; }
+      }
+    }
+    var cls = (t.c === r.prediction) ? " class='win'" : "";
+    html += "<tr" + cls + "><td>" + showChar(t.c) + "</td><td class='num'>" + round2(t.total) +
+      "</td><td class='num'>" + round2(forV) + "</td><td class='num neg'>" + round2(againstV) + "</td></tr>";
+  }
+  html += "</table>";
+  el("tallyBox").innerHTML = html;
+}
+
+function renderRules() {
+  var r = UI.result;
+  if (!r) { return; }
+  var html = "<table><tr><th>Family</th><th>Condition (suffix of string)</th><th>Context (earlier material)</th>" +
+    "<th>Prediction</th><th>Evidence</th><th>Vote</th></tr>";
+  var k;
+  for (k = 0; k < r.rules.length; k++) {
+    var rule = r.rules[k];
+    var cls = (rule.prediction === r.prediction && rule.vote > 0) ? " class='win'" : "";
+    if (!rule.counted) { cls = " class='small'"; }
+    html += "<tr" + cls + "><td>" + escapeHtml(rule.family) + "</td>" +
+      "<td class='mono'>" + escapeHtml(rule.family === "Alternation" ? rule.condition : describeString(rule.condition)) + "</td>" +
+      "<td class='mono'>" + escapeHtml(describeString(rule.context)) + "</td>" +
+      "<td>" + showChar(rule.prediction) + "</td>" +
+      "<td class='small'>" + escapeHtml(rule.evidence) + "</td>" +
+      "<td class='num" + (rule.vote < 0 ? " neg" : "") + "'>" + round2(rule.vote) +
+      (rule.counted ? "" : " (not added: same evidence as a larger vote)") + "</td></tr>";
+  }
+  html += "</table>";
+  el("rulesBox").innerHTML = html;
+}
+
+function renderHistory() {
+  var html = "";
+  var k;
+  for (k = 0; k < UI.history.length; k++) {
+    var h = UI.history[k];
+    var pred = h.result.prediction;
+    html += "<div>Step " + (k + 1) + ": after " + escapeHtml(describeString(h.letters.substring(Math.max(0, h.letters.length - 12)))) +
+      " predicted <b>" + showChar(pred) + "</b> (total " + round2(h.result.tally[0].total) + ")</div>";
+  }
+  el("historyBox").innerHTML = html;
+}
+
+function render() {
+  renderCurrent();
+  renderTally();
+  renderRules();
+  renderHistory();
+}
+
+function runTests() {
+  var out = "";
+  var k;
+  for (k = 0; k < VC2.examples.length; k++) {
+    var ex = VC2.examples[k];
+    var res = VC2.runExample(ex);
+    out += "<div><span class='" + (res.ok ? "pass'>PASS" : "fail'>FAIL") + "</span> " + escapeHtml(ex.name) +
+      (res.ok ? "" : "<div class='mono'>produced: " + escapeHtml(res.produced) + "<br>expected: " + escapeHtml(res.expected) + "</div>") +
+      "</div>";
+  }
+  el("testResults").innerHTML = out;
+}
+
+window.onload = function () {
+  fillExamples();
+  el("startLetters").onclick = startLetters;
+  el("startWords").onclick = startWords;
+  el("stepBtn").onclick = function () { doStep(); render(); };
+  el("step5Btn").onclick = function () {
+    var k;
+    for (k = 0; k < 5; k++) { if (!doStep()) { break; } }
+    render();
+  };
+  el("runExpectedBtn").onclick = function () {
+    var target = UI.startLength + expectedLength();
+    var guard = 0;
+    while (UI.letters.length < target && guard < 500) {
+      if (!doStep()) { break; }
+      guard++;
+    }
+    render();
+  };
+  el("undoBtn").onclick = undoStep;
+  el("runTestsBtn").onclick = runTests;
+};
+</script>
+</body>
+</html>
